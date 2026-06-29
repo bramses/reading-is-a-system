@@ -1,0 +1,724 @@
+"use client";
+
+/* eslint-disable @next/next/no-img-element -- Image URLs come from JSON and should not require Next config updates per host. */
+
+import { useMemo, useState, useSyncExternalStore } from "react";
+
+type ResourceLink = {
+  label: string;
+  url: string;
+};
+
+type Strategy = {
+  id: string;
+  title: string;
+  subtitle: string;
+  tags: string[];
+  pairedWithIds: string[];
+  body: string;
+  assets: ResourceLink[];
+  youtubeLinks: string[];
+  imageUrls: string[];
+  audioFileUrls: string[];
+};
+
+type SiteData = {
+  title: string;
+  subtitle: string;
+  links: {
+    discord: string;
+    slides: string;
+    github: string;
+  };
+  tags: string[];
+  strategies: Strategy[];
+};
+
+type StrategyExplorerProps = {
+  site: SiteData;
+};
+
+type ChecklistField = "whereNow" | "goal";
+
+type ChecklistEntry = Record<ChecklistField, string>;
+
+type CartState = {
+  strategyIds: string[];
+  checklistEntries: Record<string, ChecklistEntry>;
+};
+
+const CART_STORAGE_KEY = "reading-is-a-system-cart";
+
+const BLANK_CART_STATE: CartState = {
+  strategyIds: [],
+  checklistEntries: {},
+};
+
+let cartStateCache: CartState | null = null;
+const cartStateListeners = new Set<() => void>();
+
+const CHECKLIST_FIELDS: Array<{ id: ChecklistField; label: string }> = [
+  { id: "whereNow", label: "Where are you now?" },
+  { id: "goal", label: "Goal" },
+];
+
+function createBlankChecklistEntry(): ChecklistEntry {
+  return {
+    whereNow: "",
+    goal: "",
+  };
+}
+
+function createBlankCartState(): CartState {
+  return {
+    strategyIds: [],
+    checklistEntries: {},
+  };
+}
+
+function getServerCartSnapshot() {
+  return BLANK_CART_STATE;
+}
+
+function readStoredCartState(strategyById: Map<string, Strategy>): CartState {
+  if (typeof window === "undefined") {
+    return createBlankCartState();
+  }
+
+  try {
+    const storedCart = window.sessionStorage.getItem(CART_STORAGE_KEY);
+
+    if (!storedCart) {
+      return createBlankCartState();
+    }
+
+    const parsedCart = JSON.parse(storedCart) as Partial<CartState>;
+
+    return {
+      strategyIds: (parsedCart.strategyIds ?? []).filter((strategyId) =>
+        strategyById.has(strategyId),
+      ),
+      checklistEntries: parsedCart.checklistEntries ?? {},
+    };
+  } catch {
+    return createBlankCartState();
+  }
+}
+
+function getClientCartSnapshot(strategyById: Map<string, Strategy>) {
+  cartStateCache ??= readStoredCartState(strategyById);
+
+  return cartStateCache;
+}
+
+function subscribeToCartState(listener: () => void) {
+  cartStateListeners.add(listener);
+
+  return () => {
+    cartStateListeners.delete(listener);
+  };
+}
+
+function writeCartState(cartState: CartState) {
+  cartStateCache = cartState;
+
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartState));
+  }
+
+  cartStateListeners.forEach((listener) => listener());
+}
+
+function linkLabel(url: string) {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+function urlsToLinks(urls: string[]) {
+  return urls.map((url) => ({
+    label: linkLabel(url),
+    url,
+  }));
+}
+
+function DiscordIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 shrink-0"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path d="M20.3 4.4A16.9 16.9 0 0 0 16.1 3l-.2.3c-.2.4-.4.8-.5 1.2a15.8 15.8 0 0 0-6.8 0c-.1-.4-.3-.8-.6-1.2L7.9 3a17 17 0 0 0-4.2 1.4A17.7 17.7 0 0 0 1.5 18a17.1 17.1 0 0 0 5.2 2.6l.4-.5.8-1.4a10.7 10.7 0 0 1-1.3-.6l.3-.2a12.2 12.2 0 0 0 10.2 0l.3.2c-.4.2-.9.5-1.3.6.2.5.5 1 .8 1.4l.4.5a17 17 0 0 0 5.2-2.6 17.8 17.8 0 0 0-2.2-13.6ZM8.3 15.3c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm7.4 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z" />
+    </svg>
+  );
+}
+
+function GitHubIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 shrink-0"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        clipRule="evenodd"
+        d="M12 2C6.5 2 2 6.6 2 12.2c0 4.5 2.9 8.3 6.8 9.7.5.1.7-.2.7-.5v-1.9c-2.8.6-3.4-1.2-3.4-1.2-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 0 1.6 1.1 1.6 1.1.9 1.6 2.4 1.1 2.9.8.1-.7.4-1.1.7-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1.1-2.7-.1-.3-.5-1.3.1-2.7 0 0 .9-.3 2.8 1.1a9.4 9.4 0 0 1 5.1 0c2-1.4 2.8-1.1 2.8-1.1.6 1.4.2 2.4.1 2.7.7.7 1.1 1.6 1.1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.8v2.8c0 .3.2.6.7.5a10.1 10.1 0 0 0 6.8-9.7C22 6.6 17.5 2 12 2Z"
+        fillRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+function SlidesIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M4 5h16v11H4z" />
+      <path d="M8 20h8" />
+      <path d="M12 16v4" />
+      <path d="M8 9h8" />
+      <path d="M8 12h5" />
+    </svg>
+  );
+}
+
+function CartIcon({ selected = false }: { selected?: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-5 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 7H6" />
+      <circle cx="10" cy="20" r="1" />
+      <circle cx="18" cy="20" r="1" />
+      {selected ? <path d="m10 11 2 2 4-4" /> : null}
+    </svg>
+  );
+}
+
+export default function StrategyExplorer({ site }: StrategyExplorerProps) {
+  const tags = site.tags;
+  const strategyById = useMemo(
+    () =>
+      new Map(
+        site.strategies.map((strategy) => [strategy.id, strategy] as const),
+      ),
+    [site.strategies],
+  );
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(
+    site.strategies[0]?.id ?? null,
+  );
+  const [cartExpanded, setCartExpanded] = useState(false);
+  const cartState = useSyncExternalStore(
+    subscribeToCartState,
+    () => getClientCartSnapshot(strategyById),
+    getServerCartSnapshot,
+  );
+  const cartStrategyIds = cartState.strategyIds;
+  const checklistEntries = cartState.checklistEntries;
+
+  const cartStrategies = useMemo(
+    () =>
+      cartStrategyIds
+        .map((strategyId) => strategyById.get(strategyId))
+        .filter((strategy): strategy is Strategy => Boolean(strategy)),
+    [cartStrategyIds, strategyById],
+  );
+
+  const filteredStrategies = useMemo(() => {
+    if (activeTags.length === 0) {
+      return site.strategies;
+    }
+
+    return site.strategies.filter((strategy) =>
+      activeTags.every((tag) => strategy.tags.includes(tag)),
+    );
+  }, [activeTags, site.strategies]);
+
+  function toggleTag(tag: string) {
+    setActiveTags((currentTags) =>
+      currentTags.includes(tag)
+        ? currentTags.filter((currentTag) => currentTag !== tag)
+        : [...currentTags, tag],
+    );
+  }
+
+  function moveToStrategy(strategyId: string) {
+    setActiveTags([]);
+    setExpandedId(strategyId);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById(`strategy-${strategyId}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }
+
+  function addStrategyToCart(strategyId: string) {
+    const currentState = getClientCartSnapshot(strategyById);
+
+    writeCartState({
+      strategyIds: currentState.strategyIds.includes(strategyId)
+        ? currentState.strategyIds
+        : [...currentState.strategyIds, strategyId],
+      checklistEntries: {
+        ...currentState.checklistEntries,
+        [strategyId]:
+          currentState.checklistEntries[strategyId] ??
+          createBlankChecklistEntry(),
+      },
+    });
+  }
+
+  function removeStrategyFromCart(strategyId: string) {
+    const currentState = getClientCartSnapshot(strategyById);
+
+    writeCartState({
+      ...currentState,
+      strategyIds: currentState.strategyIds.filter(
+        (currentId) => currentId !== strategyId,
+      ),
+    });
+  }
+
+  function updateChecklistEntry(
+    strategyId: string,
+    field: ChecklistField,
+    value: string,
+  ) {
+    const currentState = getClientCartSnapshot(strategyById);
+
+    writeCartState({
+      ...currentState,
+      checklistEntries: {
+        ...currentState.checklistEntries,
+        [strategyId]: {
+          ...(currentState.checklistEntries[strategyId] ??
+            createBlankChecklistEntry()),
+          [field]: value,
+        },
+      },
+    });
+  }
+
+  function clearCart() {
+    writeCartState(createBlankCartState());
+    setCartExpanded(false);
+  }
+
+  return (
+    <main className="min-h-screen bg-[#f7f5ef] text-[#201f1b] print:bg-white">
+      <div
+        className={`mx-auto flex w-full max-w-6xl flex-col gap-7 px-4 py-6 sm:gap-8 sm:px-8 sm:py-8 lg:px-10 print:max-w-none print:gap-0 print:px-0 print:py-0 ${
+          cartStrategies.length > 0 ? "pb-36 sm:pb-8" : ""
+        }`}
+      >
+        <header className="flex flex-col gap-6 border-b border-[#d8d1c1] pb-8 print:hidden">
+          <nav className="flex flex-wrap gap-3 text-sm font-medium">
+            <a
+              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              href={site.links.discord}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <DiscordIcon />
+              Join the community
+            </a>
+            <a
+              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              href={site.links.slides}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <SlidesIcon />
+              View the slides
+            </a>
+            <a
+              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              href={site.links.github}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <GitHubIcon />
+              See the Code
+            </a>
+          </nav>
+
+          <div className="max-w-4xl">
+            <h1 className="text-3xl font-semibold leading-tight sm:text-6xl">
+              {site.title}
+            </h1>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-[#5f5a4f] sm:text-xl">
+              {site.subtitle}
+            </p>
+          </div>
+        </header>
+
+        <section
+          aria-labelledby="tag-filter-title"
+          className="border-b border-[#d8d1c1] pb-8 print:hidden"
+        >
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <h2 id="tag-filter-title" className="text-sm font-semibold uppercase">
+              Tags
+            </h2>
+            {activeTags.length > 0 ? (
+              <button
+                className="text-sm underline decoration-[#8a826f] underline-offset-4"
+                type="button"
+                onClick={() => setActiveTags([])}
+              >
+                Clear
+              </button>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <label
+                className="flex cursor-pointer items-center gap-2 border border-[#c8c0ae] bg-[#fffdf8] px-3 py-2 text-sm"
+                key={tag}
+              >
+                <input
+                  checked={activeTags.includes(tag)}
+                  className="size-4 accent-[#315d4c]"
+                  onChange={() => toggleTag(tag)}
+                  type="checkbox"
+                />
+                {tag}
+              </label>
+            ))}
+          </div>
+        </section>
+
+        {cartStrategies.length > 0 ? (
+          <section
+            aria-labelledby="cart-title"
+            className={`fixed inset-x-3 bottom-3 z-30 overflow-y-auto overscroll-contain border border-[#d8d1c1] bg-[#fffdf8] p-3 shadow-sm sm:bottom-auto sm:left-auto sm:right-4 sm:top-0 sm:max-h-screen sm:w-96 print:static print:z-auto print:max-h-none print:w-full print:overflow-visible print:border-0 print:bg-white print:p-0 print:shadow-none ${
+              cartExpanded ? "max-h-96" : ""
+            }`}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between print:hidden">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h2 id="cart-title" className="text-sm font-semibold uppercase">
+                  Cart
+                </h2>
+                <p className="text-sm text-[#5f5a4f]">
+                  {cartStrategies.length} selected
+                </p>
+              </div>
+
+              <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto print:hidden">
+                <button
+                  className="border border-[#c8c0ae] px-2 py-2 text-xs font-medium hover:border-[#201f1b] sm:px-3 sm:py-1.5 sm:text-sm"
+                  onClick={() => setCartExpanded((expanded) => !expanded)}
+                  type="button"
+                >
+                  {cartExpanded ? "Hide checklist" : "Edit checklist"}
+                </button>
+                <button
+                  className="border border-[#201f1b] px-2 py-2 text-xs font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:px-3 sm:py-1.5 sm:text-sm"
+                  onClick={() => window.print()}
+                  type="button"
+                >
+                  Print / PDF
+                </button>
+                <button
+                  className="border border-[#c8c0ae] px-2 py-2 text-xs font-medium hover:border-[#201f1b] sm:px-3 sm:py-1.5 sm:text-sm"
+                  onClick={clearCart}
+                  type="button"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+
+            <div
+              className={`${
+                cartExpanded ? "mt-4 grid gap-3 sm:gap-4" : "hidden"
+              } print:mt-0 print:grid print:gap-0`}
+            >
+              <div className="hidden print:block">
+                <h1 className="text-3xl font-semibold print:text-5xl">
+                  {site.title} Checklist
+                </h1>
+                <p className="mt-3 text-sm print:text-lg">
+                  {cartStrategies.length} selected strategies
+                </p>
+              </div>
+              {cartStrategies.map((strategy) => {
+                const checklistEntry =
+                  checklistEntries[strategy.id] ?? createBlankChecklistEntry();
+
+                return (
+                  <article
+                    className="print-strategy break-inside-avoid border border-[#d8d1c1] p-3 sm:p-4 print:border-2 print:border-[#201f1b] print:p-8"
+                    key={strategy.id}
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                      <div className="min-w-0">
+                        <h3 className="text-xl font-semibold leading-tight sm:text-2xl print:text-4xl">
+                          {strategy.title}
+                        </h3>
+                        <p className="mt-1 leading-7 text-[#5f5a4f] print:mt-3 print:text-xl print:leading-8 print:text-[#201f1b]">
+                          {strategy.subtitle}
+                        </p>
+                      </div>
+                      <button
+                        className="w-full border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b] sm:w-auto print:hidden"
+                        onClick={() => removeStrategyFromCart(strategy.id)}
+                        type="button"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2 print:mt-10 print:grid-cols-1 print:gap-10">
+                      {CHECKLIST_FIELDS.map((field) => (
+                        <label className="block" key={field.id}>
+                          <span className="text-sm font-semibold uppercase print:text-xl">
+                            {field.label}
+                          </span>
+                          <textarea
+                            className="mt-2 min-h-32 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b] print:mt-4 print:min-h-72 print:resize-none print:border-2 print:p-5 print:text-xl print:leading-8"
+                            onChange={(event) =>
+                              updateChecklistEntry(
+                                strategy.id,
+                                field.id,
+                                event.target.value,
+                              )
+                            }
+                            value={checklistEntry[field.id]}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="grid gap-4 md:grid-cols-2 print:hidden">
+          {filteredStrategies.map((strategy) => {
+            const expanded = expandedId === strategy.id;
+            const inCart = cartStrategyIds.includes(strategy.id);
+            const pairedStrategies = strategy.pairedWithIds
+              .map((strategyId) => strategyById.get(strategyId))
+              .filter((pairedStrategy): pairedStrategy is Strategy =>
+                Boolean(pairedStrategy),
+              );
+            const linkGroups = [
+              {
+                title: "Assets",
+                links: strategy.assets,
+              },
+              {
+                title: "YouTube",
+                links: urlsToLinks(strategy.youtubeLinks),
+              },
+              {
+                title: "Audio",
+                links: urlsToLinks(strategy.audioFileUrls),
+              },
+            ].filter((group) => group.links.length > 0);
+
+            return (
+              <article
+                className="scroll-mt-6 border border-[#d8d1c1] bg-[#fffdf8]"
+                id={`strategy-${strategy.id}`}
+                key={strategy.id}
+              >
+                <div className="p-4 sm:p-5">
+                  <div>
+                    <span className="mb-3 flex flex-wrap gap-2">
+                      {strategy.tags.map((tag) => (
+                        <span
+                          className="border border-[#d8d1c1] px-2 py-1 text-xs text-[#5f5a4f]"
+                          key={tag}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </span>
+                    <h3 className="text-xl font-semibold leading-tight sm:text-2xl">
+                      {strategy.title}
+                    </h3>
+                    <p className="mt-2 leading-7 text-[#5f5a4f]">
+                      {strategy.subtitle}
+                    </p>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      aria-expanded={expanded}
+                      className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#fffdf8]"
+                      onClick={() =>
+                        setExpandedId(expanded ? null : strategy.id)
+                      }
+                      type="button"
+                    >
+                      {expanded ? "Hide details" : "View details"}
+                    </button>
+                    <button
+                      aria-label={
+                        inCart
+                          ? `Remove ${strategy.title} from cart`
+                          : `Add ${strategy.title} to cart`
+                      }
+                      aria-pressed={inCart}
+                      className={`inline-flex size-10 items-center justify-center border text-sm font-medium ${
+                        inCart
+                          ? "border-[#315d4c] bg-[#315d4c] text-[#fffdf8]"
+                          : "border-[#315d4c] text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8]"
+                      }`}
+                      onClick={() =>
+                        inCart
+                          ? removeStrategyFromCart(strategy.id)
+                          : addStrategyToCart(strategy.id)
+                      }
+                      title={inCart ? "Remove from cart" : "Add to cart"}
+                      type="button"
+                    >
+                      <CartIcon selected={inCart} />
+                    </button>
+                  </div>
+                </div>
+
+                {expanded ? (
+                  <div className="border-t border-[#d8d1c1] px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
+                    <p className="max-w-prose leading-7 text-[#333029]">
+                      {strategy.body}
+                    </p>
+
+                    {strategy.imageUrls.length > 0 ? (
+                      <div className="mt-5">
+                        <h3 className="text-sm font-semibold uppercase">
+                          Images
+                        </h3>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                          {strategy.imageUrls.map((url, index) => (
+                            <a
+                              className="block border border-[#d8d1c1] bg-[#f7f5ef]"
+                              href={url}
+                              key={url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <img
+                                alt={`${strategy.title} image ${index + 1}`}
+                                className="aspect-[4/3] w-full object-cover"
+                                loading="lazy"
+                                src={url}
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                      {linkGroups.slice(0, 1).map((group) => (
+                        <div key={group.title}>
+                          <h3 className="text-sm font-semibold uppercase">
+                            {group.title}
+                          </h3>
+                          <ul className="mt-3 space-y-2 text-sm">
+                            {group.links.map((link) => (
+                              <li key={link.url}>
+                                <a
+                                  className="underline decoration-[#8a826f] underline-offset-4"
+                                  href={link.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {link.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                      {pairedStrategies.length > 0 ? (
+                        <div>
+                          <h3 className="text-sm font-semibold uppercase">
+                            Paired with
+                          </h3>
+                          <ul className="mt-3 space-y-2 text-sm">
+                            {pairedStrategies.map((pairedStrategy) => (
+                              <li key={pairedStrategy.id}>
+                                <button
+                                  className="text-left underline decoration-[#8a826f] underline-offset-4"
+                                  onClick={() =>
+                                    moveToStrategy(pairedStrategy.id)
+                                  }
+                                  type="button"
+                                >
+                                  {pairedStrategy.title}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                      {linkGroups.slice(1).map((group) => (
+                        <div key={group.title}>
+                          <h3 className="text-sm font-semibold uppercase">
+                            {group.title}
+                          </h3>
+                          <ul className="mt-3 space-y-2 text-sm">
+                            {group.links.map((link) => (
+                              <li key={link.url}>
+                                <a
+                                  className="underline decoration-[#8a826f] underline-offset-4"
+                                  href={link.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {link.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </section>
+
+        {filteredStrategies.length === 0 ? (
+          <p className="border border-[#d8d1c1] bg-[#fffdf8] p-5 text-[#5f5a4f]">
+            No strategies match the active tags.
+          </p>
+        ) : null}
+      </div>
+    </main>
+  );
+}
