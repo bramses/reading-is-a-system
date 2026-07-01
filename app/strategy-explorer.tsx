@@ -221,9 +221,9 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     [site.strategies],
   );
   const [activeTags, setActiveTags] = useState<string[]>([]);
-  const [expandedId, setExpandedId] = useState<string | null>(
-    site.strategies[0]?.id ?? null,
-  );
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [detailsButtonInteracted, setDetailsButtonInteracted] =
+    useState(false);
   const [cartExpanded, setCartExpanded] = useState(false);
   const cartState = useSyncExternalStore(
     subscribeToCartState,
@@ -256,6 +256,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
       currentTags.includes(tag)
         ? currentTags.filter((currentTag) => currentTag !== tag)
         : [...currentTags, tag],
+    );
+  }
+
+  function toggleStrategyDetails(strategyId: string) {
+    setDetailsButtonInteracted(true);
+    setExpandedId((currentExpandedId) =>
+      currentExpandedId === strategyId ? null : strategyId,
     );
   }
 
@@ -536,8 +543,10 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         ) : null}
 
         <section className="grid gap-4 md:grid-cols-2 print:hidden">
-          {filteredStrategies.map((strategy) => {
+          {filteredStrategies.map((strategy, index) => {
             const expanded = expandedId === strategy.id;
+            const shouldPulseDetailsButton =
+              index === 0 && !detailsButtonInteracted && !expanded;
             const inCart = cartStrategyIds.includes(strategy.id);
             const pairedStrategies = strategy.pairedWithIds
               .map((strategyId) => strategyById.get(strategyId))
@@ -591,10 +600,12 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       aria-expanded={expanded}
-                      className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#fffdf8]"
-                      onClick={() =>
-                        setExpandedId(expanded ? null : strategy.id)
-                      }
+                      className={`border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#fffdf8] ${
+                        shouldPulseDetailsButton
+                          ? "motion-safe:animate-pulse shadow-[0_0_0_2px_#315d4c]"
+                          : ""
+                      }`}
+                      onClick={() => toggleStrategyDetails(strategy.id)}
                       type="button"
                     >
                       {expanded ? "Hide details" : "View details"}
