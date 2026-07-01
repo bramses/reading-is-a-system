@@ -58,7 +58,7 @@ function readStrategy(value: unknown, index: number): Strategy {
     ),
     body: readString(strategy.body, `strategies.${index}.body`),
     assets: readResourceLinks(strategy.assets, `strategies.${index}.assets`),
-    youtubeLinks: readStringArray(
+    youtubeLinks: readResourceLinks(
       strategy.youtubeLinks,
       `strategies.${index}.youtubeLinks`,
     ),

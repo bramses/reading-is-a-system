@@ -12,7 +12,7 @@ The site content is in `app/data/site.json`.
 - `strategies` controls the filterable cards.
 - Each strategy supports `title`, `subtitle`, `body`, `tags`, `pairedWithIds`, `assets`, `youtubeLinks`, `imageUrls`, and `audioFileUrls`.
 - `pairedWithIds` is an array of other strategy IDs for in-page navigation.
-- `assets` is an array of `{ "label": "...", "url": "..." }` links.
+- `assets` and `youtubeLinks` are arrays of `{ "label": "...", "url": "..." }` links.
 - `imageUrls` render inline in expanded cards.
 
 The Cart is stored in browser `sessionStorage`. Selected strategies can be

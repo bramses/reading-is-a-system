@@ -112,7 +112,10 @@ function readStrategy(formData: FormData, prefix: string, fallbackLabel: string)
       blockValue(formData, `${prefix}_assets`),
       `${fallbackLabel} assets`,
     ),
-    youtubeLinks: listFromText(blockValue(formData, `${prefix}_youtubeLinks`)),
+    youtubeLinks: parseResourceLinks(
+      blockValue(formData, `${prefix}_youtubeLinks`),
+      `${fallbackLabel} YouTube links`,
+    ),
     imageUrls: listFromText(blockValue(formData, `${prefix}_imageUrls`)),
     audioFileUrls: listFromText(
       blockValue(formData, `${prefix}_audioFileUrls`),

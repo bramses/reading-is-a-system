@@ -225,7 +225,7 @@ function StrategyEditor({
       />
       <div className="grid gap-4 md:grid-cols-3">
         <TextAreaField
-          defaultValue={listText(strategy.youtubeLinks)}
+          defaultValue={resourceLinksText(strategy.youtubeLinks)}
           label="YouTube links"
           name={`${prefix}_youtubeLinks`}
           required={false}

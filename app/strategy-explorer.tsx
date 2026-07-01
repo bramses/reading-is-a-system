@@ -551,7 +551,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               },
               {
                 title: "YouTube",
-                links: urlsToLinks(strategy.youtubeLinks),
+                links: strategy.youtubeLinks,
               },
               {
                 title: "Audio",

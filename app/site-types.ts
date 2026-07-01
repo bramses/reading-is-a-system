@@ -11,7 +11,7 @@ export type Strategy = {
   pairedWithIds: string[];
   body: string;
   assets: ResourceLink[];
-  youtubeLinks: string[];
+  youtubeLinks: ResourceLink[];
   imageUrls: string[];
   audioFileUrls: string[];
 };

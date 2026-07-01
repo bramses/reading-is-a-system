@@ -32,7 +32,10 @@
         }
       ],
       "youtubeLinks": [
-        "https://youtu.be/MJ_Q6ezoVng"
+        {
+          "label": "You Should Read Multiple Books at Once",
+          "url": "https://youtu.be/MJ_Q6ezoVng"
+        }
       ],
       "imageUrls": [],
       "audioFileUrls": []
@@ -51,8 +54,23 @@
         }
       ],
       "youtubeLinks": [
-        "https://youtu.be/zgIrqb-4lnM"
+        {
+          "label": "You Can't Remember Everything You Read So Don't Bother",
+          "url": "https://youtu.be/zgIrqb-4lnM"
+        }
       ],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "commonplace-book",
+      "title": "Commonplace Book",
+      "subtitle": "A shared platform for storing and searching for information you want to remember.",
+      "tags": ["comprehension", "bad-habits"],
+      "pairedWithIds": [],
+      "body": "A commonplace book is your personal knowledge management system. It is a shared platform for storing and searching for information you want to remember across all of your reading. It is a tool that allows you to capture and organize your thoughts, ideas, and insights in a way that is meaningful to you.",
+      "assets": [],
+      "youtubeLinks": [],
       "imageUrls": [],
       "audioFileUrls": []
     }
