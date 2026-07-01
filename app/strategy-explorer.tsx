@@ -29,6 +29,7 @@ type SiteData = {
     discord: string;
     slides: string;
     github: string;
+    schedule: string;
   };
   tags: string[];
   strategies: Strategy[];
@@ -192,6 +193,29 @@ function SlidesIcon() {
       <path d="M12 16v4" />
       <path d="M8 9h8" />
       <path d="M8 12h5" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <path d="M3 10h18" />
+      <path d="M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+      <path d="M8 14h.01" />
+      <path d="M12 14h.01" />
+      <path d="M16 14h.01" />
     </svg>
   );
 }
@@ -363,7 +387,16 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               rel="noreferrer"
             >
               <GitHubIcon />
-              See the Code
+              Star on GitHub
+            </a>
+            <a
+              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              href={site.links.schedule}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <CalendarIcon />
+              Schedule a 1:1 with Bram
             </a>
           </nav>
 
