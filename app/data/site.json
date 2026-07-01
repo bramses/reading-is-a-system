@@ -1,10 +1,10 @@
 {
   "title": "Reading is a System",
-  "subtitle": "Improve your reading system for the rest of your life by utilizing these strategies",
+  "subtitle": "Read widely, deeply, and more effectively by treating reading as a system. Try building a cart with strategies that appeal to your goals.",
   "links": {
     "discord": "https://discord.gg/UN3u73CDzH",
     "slides": "https://docs.google.com/presentation/d/1rPX2rZ80CmHJCKZBziS1BtdodQM4NJhkNIz8EhF9nHM/edit?usp=sharing",
-    "github": "https://github.com/"
+    "github": "https://github.com/bramses/reading-is-a-system"
   },
   "tags": [
     "comprehension",
@@ -20,204 +20,20 @@
       "id": "parallel-reading",
       "title": "Parallel Reading",
       "subtitle": "Read several sources at once to expose shared claims, tensions, and gaps.",
-      "tags": ["reading", "comparison", "synthesis"],
-      "pairedWithIds": ["discursive-reading", "field-notes", "exponential-dropoff"],
+      "tags": ["throughput"],
+      "pairedWithIds": [],
       "body": "Keep two to five texts active around the same problem. Move between them deliberately: when one author makes a claim, look for confirmation, disagreement, or missing context in the others. The goal is not finishing faster; it is building a stronger map of the field.",
       "assets": [
         {
-          "label": "Comparison matrix",
-          "url": "https://www.google.com/search?q=reading+comparison+matrix+template"
-        },
-        {
-          "label": "Question ledger",
-          "url": "https://www.google.com/search?q=research+question+ledger+template"
-        },
-        {
-          "label": "Source stack",
-          "url": "https://www.zotero.org/"
+          "label": "Presentation slides",
+          "url": "https://docs.google.com/presentation/d/1tZSWIQX7JmCUFhhoXXxFvGLEmiAFAhY2q2QZLdce_s8/edit?usp=sharing"
         }
       ],
       "youtubeLinks": [
-        "https://www.youtube.com/results?search_query=parallel+reading+strategy"
+        "https://youtu.be/MJ_Q6ezoVng"
       ],
       "imageUrls": [],
       "audioFileUrls": []
-    },
-    {
-      "id": "discursive-reading",
-      "title": "Discursive Reading",
-      "subtitle": "Let a source send you sideways through references, names, and arguments.",
-      "tags": ["reading", "research", "navigation"],
-      "pairedWithIds": ["parallel-reading", "entity-shorthand", "internet-worldbuilding"],
-      "body": "Treat reading as a conversation with the surrounding material. Follow footnotes, unfamiliar entities, cited papers, and recurring terms. Capture why each detour mattered so the path becomes a useful trail rather than a pile of tabs.",
-      "assets": [
-        {
-          "label": "Reference trail",
-          "url": "https://www.google.com/search?q=reference+tracking+template"
-        },
-        {
-          "label": "Open questions list",
-          "url": "https://www.google.com/search?q=research+questions+template"
-        },
-        {
-          "label": "Citation capture",
-          "url": "https://www.zotero.org/"
-        }
-      ],
-      "youtubeLinks": [
-        "https://www.youtube.com/results?search_query=discursive+reading"
-      ],
-      "imageUrls": [
-        "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8"
-      ],
-      "audioFileUrls": []
-    },
-    {
-      "id": "field-notes",
-      "title": "Field Notes",
-      "subtitle": "Capture observations close to the moment before they harden into summaries.",
-      "tags": ["notes", "observation", "practice"],
-      "pairedWithIds": ["entity-shorthand", "parallel-reading", "internet-worldbuilding"],
-      "body": "Write short, dated notes while reading, watching, talking, or testing. Keep them concrete: what happened, what changed, what surprised you, and what you might inspect next. Later synthesis gets better when the raw observations stay intact.",
-      "assets": [
-        {
-          "label": "Daily log",
-          "url": "https://www.google.com/search?q=field+notes+daily+log+template"
-        },
-        {
-          "label": "Timestamped captures",
-          "url": "https://www.google.com/search?q=timestamped+notes+template"
-        },
-        {
-          "label": "Observation prompts",
-          "url": "https://www.google.com/search?q=field+observation+prompts"
-        }
-      ],
-      "youtubeLinks": [
-        "https://www.youtube.com/results?search_query=field+notes+research"
-      ],
-      "imageUrls": [
-        "https://images.unsplash.com/photo-1517842645767-c639042777db"
-      ],
-      "audioFileUrls": []
-    },
-    {
-      "id": "entity-shorthand",
-      "title": "Entity Shorthand",
-      "subtitle": "Use compact labels for people, places, works, institutions, and concepts.",
-      "tags": ["notes", "entities", "retrieval"],
-      "pairedWithIds": ["field-notes", "discursive-reading", "internet-worldbuilding"],
-      "body": "Give recurring entities stable shorthand so your notes stay fast without becoming vague. A person, book, theory, institution, project, or place can each get a memorable token. The shorthand becomes useful when it is consistent enough to search later.",
-      "assets": [
-        {
-          "label": "Entity index",
-          "url": "https://www.google.com/search?q=entity+index+template"
-        },
-        {
-          "label": "Alias list",
-          "url": "https://www.google.com/search?q=alias+list+knowledge+management"
-        },
-        {
-          "label": "Search tokens",
-          "url": "https://www.google.com/search?q=personal+knowledge+management+search+tokens"
-        }
-      ],
-      "youtubeLinks": [
-        "https://www.youtube.com/results?search_query=knowledge+management+entities"
-      ],
-      "imageUrls": [
-        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3"
-      ],
-      "audioFileUrls": []
-    },
-    {
-      "id": "youtube-playlists",
-      "title": "YouTube Playlists",
-      "subtitle": "Turn watch queues into intentional research sequences.",
-      "tags": ["video", "curation", "research"],
-      "pairedWithIds": ["internet-worldbuilding", "field-notes", "exponential-dropoff"],
-      "body": "Build playlists around questions instead of channels. Sort videos by what they add: overview, case study, dissent, tutorial, interview, or primary source. Add a sentence after watching so the playlist becomes a trail of judgments, not just saved media.",
-      "assets": [
-        {
-          "label": "Question playlist",
-          "url": "https://www.youtube.com/feed/playlists"
-        },
-        {
-          "label": "Watch notes",
-          "url": "https://www.google.com/search?q=video+notes+template"
-        },
-        {
-          "label": "Source labels",
-          "url": "https://www.google.com/search?q=source+labeling+system"
-        }
-      ],
-      "youtubeLinks": [
-        "https://www.youtube.com/results?search_query=research+playlist+youtube"
-      ],
-      "imageUrls": [
-        "https://images.unsplash.com/photo-1611162616475-46b635cb6868"
-      ],
-      "audioFileUrls": []
-    },
-    {
-      "id": "internet-worldbuilding",
-      "title": "Internet Worldbuilding",
-      "subtitle": "Study online spaces as systems with norms, artifacts, and histories.",
-      "tags": ["internet", "culture", "systems"],
-      "pairedWithIds": ["youtube-playlists", "entity-shorthand", "discursive-reading"],
-      "body": "When entering a forum, scene, tool ecosystem, or platform, identify the local vocabulary, status signals, recurring disputes, origin stories, and canonical artifacts. The internet becomes more legible when each space is treated as a world with rules.",
-      "assets": [
-        {
-          "label": "Vocabulary map",
-          "url": "https://www.google.com/search?q=vocabulary+map+template"
-        },
-        {
-          "label": "Artifact shelf",
-          "url": "https://www.are.na/"
-        },
-        {
-          "label": "Norms log",
-          "url": "https://www.google.com/search?q=community+norms+observation+template"
-        }
-      ],
-      "youtubeLinks": [
-        "https://www.youtube.com/results?search_query=internet+culture+research"
-      ],
-      "imageUrls": [
-        "https://images.unsplash.com/photo-1519389950473-47ba0277781c"
-      ],
-      "audioFileUrls": []
-    },
-    {
-      "id": "exponential-dropoff",
-      "title": "Exponential Dropoff",
-      "subtitle": "Expect attention, quality, and relevance to decay unless the system filters hard.",
-      "tags": ["filtering", "attention", "systems"],
-      "pairedWithIds": ["parallel-reading", "youtube-playlists", "field-notes"],
-      "body": "Most queues decay quickly: links age, tabs lose context, and saved items stop mattering. Design for dropoff by reviewing aggressively, deleting without ceremony, and only promoting material that earns a second pass.",
-      "assets": [
-        {
-          "label": "Review queue",
-          "url": "https://www.google.com/search?q=reading+review+queue+template"
-        },
-        {
-          "label": "Promotion criteria",
-          "url": "https://www.google.com/search?q=knowledge+management+promotion+criteria"
-        },
-        {
-          "label": "Archive rule",
-          "url": "https://www.google.com/search?q=archive+rules+personal+knowledge+management"
-        }
-      ],
-      "youtubeLinks": [
-        "https://www.youtube.com/results?search_query=attention+management+systems"
-      ],
-      "imageUrls": [
-        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
-      ],
-      "audioFileUrls": [
-        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-      ]
     }
   ]
 }
