@@ -13,7 +13,8 @@
     "search",
     "synthesize",
     "share",
-    "digilog"
+    "digilog",
+    "bad-habits"
   ],
   "strategies": [
     {
@@ -22,7 +23,7 @@
       "subtitle": "Read several sources at once to expose shared claims, tensions, and gaps.",
       "tags": ["throughput"],
       "pairedWithIds": [],
-      "body": "Keep two to five texts active around the same problem. Move between them deliberately: when one author makes a claim, look for confirmation, disagreement, or missing context in the others. The goal is not finishing faster; it is building a stronger map of the field.",
+      "body": "Reading multiple books at once allows you to unlock many benifits that you would not get from reading one book at a time. You'll learn to discursively read, to make reading sessions more consistent, and to drop books caught in sunk cost fallacies.",
       "assets": [
         {
           "label": "Presentation slides",
@@ -31,6 +32,25 @@
       ],
       "youtubeLinks": [
         "https://youtu.be/MJ_Q6ezoVng"
+      ],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "you-won-t-remember-everything-you-read",
+      "title": "You Won't Remember Everything You Read",
+      "subtitle": "Make a Lookup Table to store and search for information you want to remember.",
+      "tags": ["comprehension", "bad-habits"],
+      "pairedWithIds": [],
+      "body": "Our brains are not designed to remember everything we read. Instead, we should focus on remembering the information that is most relevant to our goals. A Lookup Table is a simple tool that allows you to store and search for information you want to remember.",
+      "assets": [
+        {
+          "label": "Presentation slides",
+          "url": "https://docs.google.com/presentation/d/1eDt_w7iT9k3e1zsmYTbsHw4yvVGv9ojZVyT7rNKxqMk/edit?usp=sharing"
+        }
+      ],
+      "youtubeLinks": [
+        "https://youtu.be/zgIrqb-4lnM"
       ],
       "imageUrls": [],
       "audioFileUrls": []
