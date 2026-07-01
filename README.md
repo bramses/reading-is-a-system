@@ -18,6 +18,18 @@ The site content is in `app/data/site.json`.
 The Cart is stored in browser `sessionStorage`. Selected strategies can be
 printed or saved as a PDF checklist with fields for where you are now and goal.
 
+## Content Editor
+
+The password-protected content editor is at `/be`.
+
+Set `CONTENT_ADMIN_PASSWORD` in Vercel Environment Variables, and set the same
+key in `.env.local` for local development. Do not prefix it with `NEXT_PUBLIC_`.
+
+The editor writes updates to `app/data/site.json`. That is useful locally or on
+a persistent Node host. Vercel serverless filesystems are not durable content
+storage, so production edits on Vercel should be backed by Git, Blob, KV, or a
+database before relying on them.
+
 ## Development
 
 ```bash

@@ -4,36 +4,7 @@
 
 import { useMemo, useState, useSyncExternalStore } from "react";
 
-type ResourceLink = {
-  label: string;
-  url: string;
-};
-
-type Strategy = {
-  id: string;
-  title: string;
-  subtitle: string;
-  tags: string[];
-  pairedWithIds: string[];
-  body: string;
-  assets: ResourceLink[];
-  youtubeLinks: string[];
-  imageUrls: string[];
-  audioFileUrls: string[];
-};
-
-type SiteData = {
-  title: string;
-  subtitle: string;
-  links: {
-    discord: string;
-    slides: string;
-    github: string;
-    schedule: string;
-  };
-  tags: string[];
-  strategies: Strategy[];
-};
+import type { SiteData, Strategy } from "./site-types";
 
 type StrategyExplorerProps = {
   site: SiteData;
@@ -349,6 +320,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   }
 
   function clearCart() {
+    const confirmed = window.confirm(
+      "Clear all selected strategies and checklist notes?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     writeCartState(createBlankCartState());
     setCartExpanded(false);
   }
