@@ -561,7 +561,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
 
             return (
               <article
-                className="scroll-mt-6 border border-[#d8d1c1] bg-[#fffdf8]"
+                className={`scroll-mt-6 border bg-[#fffdf8] ${
+                  expanded
+                    ? "border-[#201f1b] shadow-[0_0_0_2px_#201f1b]"
+                    : "border-[#d8d1c1]"
+                }`}
                 id={`strategy-${strategy.id}`}
                 key={strategy.id}
               >
