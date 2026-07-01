@@ -247,7 +247,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     }
 
     return site.strategies.filter((strategy) =>
-      activeTags.every((tag) => strategy.tags.includes(tag)),
+      activeTags.some((tag) => strategy.tags.includes(tag)),
     );
   }, [activeTags, site.strategies]);
 
