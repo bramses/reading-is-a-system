@@ -36,6 +36,10 @@
         {
           "label": "You Should Read Multiple Books at Once",
           "url": "https://youtu.be/MJ_Q6ezoVng"
+        },
+        {
+          "label": "How to read multiple books at once",
+          "url": "https://www.youtube.com/watch?v=iYcsIgTNPZA"
         }
       ],
       "imageUrls": [],
@@ -78,19 +82,19 @@
     {
       "id": "check-in-electronic-devices",
       "title": "Check In Electronic Devices",
-      "subtitle": "Use a timer to get off your phone and computer for a set period of time.",
+      "subtitle": "VPNs and blockers don't work in the throes of active distraction. Check in your devices to a different room to avoid the temptation.",
       "tags": ["bad-habits", "digilog"],
       "pairedWithIds": [],
       "body": "",
       "assets": [],
       "youtubeLinks": [],
-      "imageUrls": ["https://storage.ghost.io/c/0c/cc/0ccc9a8d-054a-4056-b11e-e1bfbbb66387/content/images/size/w2000/2026/04/main-image--28-.jpeg"],
+      "imageUrls": [],
       "audioFileUrls": []
     },
     {
       "id": "question-based-reading",
       "title": "Question Based Reading",
-      "subtitle": "Don't start reading a book without a question in mind. Use questions to guide your reading and to help you remember what you read.",
+      "subtitle": "Don't start reading a book without questions in mind. Use questions as a detective to guide your reading and to help you remember what you read.",
       "tags": ["synthesize", "comprehension"],
       "pairedWithIds": ["commonplace-book"],
       "body": "",
@@ -100,7 +104,12 @@
           "url": "https://apps.apple.com/us/app/brams-reading-app/id6759291875"
         }
       ],
-      "youtubeLinks": [],
+      "youtubeLinks": [
+        {
+          "label": "Oxford Study Skills: How to Read",
+          "url": "https://www.youtube.com/watch?v=1QbtOSyE5C8"
+        }
+      ],
       "imageUrls": [],
       "audioFileUrls": []
     },
@@ -137,20 +146,29 @@
     {
       "id": "smart-skimming",
       "title": "Smart Skimming",
-      "subtitle": "",
+      "subtitle": "Not all books are meant to be read cover to cover. Skim the parts that are less relevant to your goals.",
       "tags": [],
       "pairedWithIds": [],
       "body": "",
       "assets": [
+        {
+          "label": "How to Read a Book by Mortimer J. Adler and Charles Van Doren",
+          "url": "https://www.amazon.com/dp/0671212095?lv=shuf&channelId=500&plpRedirect=mhFallback"
+        }
       ],
-      "youtubeLinks": [],
+      "youtubeLinks": [
+        {
+          "label": "Reading Fast and Slow",
+          "url": "https://www.youtube.com/watch?v=FzQL9D_3rKc"
+        }
+      ],
       "imageUrls": [],
       "audioFileUrls": []
     },
     {
       "id": "different-books-call-for-different-reading-strategies",
       "title": "Different Books Call for Different Reading Strategies",
-      "subtitle": "",
+      "subtitle": "No two books are written the same, and no two books should be read the same. Adjust your reading strategy to the book you're reading.",
       "tags": [],
       "pairedWithIds": [],
       "body": "",
