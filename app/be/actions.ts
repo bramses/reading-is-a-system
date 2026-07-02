@@ -132,6 +132,7 @@ function formDataToSiteData(formData: FormData): SiteData {
       slides: textValue(formData, "link_slides"),
       github: textValue(formData, "link_github"),
       schedule: textValue(formData, "link_schedule"),
+      bookClub: textValue(formData, "link_bookClub"),
     },
     tags: listFromText(blockValue(formData, "tags")),
     strategies: [],
@@ -143,10 +144,12 @@ function formDataToSiteData(formData: FormData): SiteData {
   assertRequired(site.links.slides, "Slides link");
   assertRequired(site.links.github, "GitHub link");
   assertRequired(site.links.schedule, "Schedule link");
+  assertRequired(site.links.bookClub, "Book club link");
   assertUrl(site.links.discord, "Discord link");
   assertUrl(site.links.slides, "Slides link");
   assertUrl(site.links.github, "GitHub link");
   assertUrl(site.links.schedule, "Schedule link");
+  assertUrl(site.links.bookClub, "Book club link");
 
   const strategyIndexes = formData
     .getAll("strategyIndex")

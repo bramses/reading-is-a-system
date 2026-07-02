@@ -144,6 +144,12 @@ function PageLinksEditor({ site }: { site: SiteData }) {
           name="link_schedule"
           type="url"
         />
+        <TextField
+          defaultValue={site.links.bookClub}
+          label="Book club link"
+          name="link_bookClub"
+          type="url"
+        />
       </div>
       <TextAreaField
         defaultValue={listText(site.tags)}

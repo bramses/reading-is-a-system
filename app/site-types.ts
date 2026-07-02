@@ -24,6 +24,7 @@ export type SiteData = {
     slides: string;
     github: string;
     schedule: string;
+    bookClub: string;
   };
   tags: string[];
   strategies: Strategy[];

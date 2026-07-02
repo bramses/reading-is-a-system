@@ -191,6 +191,41 @@ function CalendarIcon() {
   );
 }
 
+function ChevronDownIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-5 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
 function CartIcon({ selected = false }: { selected?: boolean }) {
   return (
     <svg
@@ -224,6 +259,10 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [detailsButtonInteracted, setDetailsButtonInteracted] =
     useState(false);
+  const [lightboxImage, setLightboxImage] = useState<{
+    alt: string;
+    url: string;
+  } | null>(null);
   const [cartExpanded, setCartExpanded] = useState(false);
   const cartState = useSyncExternalStore(
     subscribeToCartState,
@@ -341,6 +380,35 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
 
   return (
     <main className="min-h-screen bg-[#f7f5ef] text-[#201f1b] print:bg-white">
+      {lightboxImage ? (
+        <div
+          aria-label={lightboxImage.alt}
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#201f1b]/90 p-4 print:hidden sm:p-8"
+          onClick={() => setLightboxImage(null)}
+          role="dialog"
+        >
+          <button
+            aria-label="Close image"
+            className="absolute right-4 top-4 inline-flex size-11 items-center justify-center border border-[#f7f5ef] bg-[#201f1b] text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+            onClick={() => setLightboxImage(null)}
+            type="button"
+          >
+            <CloseIcon />
+          </button>
+          <div
+            className="flex max-h-full max-w-full items-center justify-center"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <img
+              alt={lightboxImage.alt}
+              className="block max-h-[90vh] max-w-full object-contain"
+              src={lightboxImage.url}
+            />
+          </div>
+        </div>
+      ) : null}
+
       <div
         className={`mx-auto flex w-full max-w-6xl flex-col gap-7 px-4 py-6 sm:gap-8 sm:px-8 sm:py-8 lg:px-10 print:max-w-none print:gap-0 print:px-0 print:py-0 ${
           cartStrategies.length > 0 ? "pb-36 sm:pb-8" : ""
@@ -375,15 +443,31 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               <GitHubIcon />
               Star on GitHub
             </a>
-            <a
-              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
-              href={site.links.schedule}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <CalendarIcon />
-              Schedule a 1:1 with Bram
-            </a>
+            <details className="group relative w-full sm:w-auto">
+              <summary className="inline-flex w-full cursor-pointer list-none items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto [&::-webkit-details-marker]:hidden">
+                <CalendarIcon />
+                Talk to Bram
+                <ChevronDownIcon />
+              </summary>
+              <div className="mt-2 grid w-full border border-[#201f1b] bg-[#fffdf8] text-[#201f1b] shadow-sm sm:absolute sm:right-0 sm:top-full sm:z-20 sm:w-72">
+                <a
+                  className="px-3 py-3 hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                  href={site.links.schedule}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Schedule a 1:1 with Bram
+                </a>
+                <a
+                  className="border-t border-[#d8d1c1] px-3 py-3 hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                  href={site.links.bookClub}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Come talk to my book club
+                </a>
+              </div>
+            </details>
           </nav>
 
           <div className="max-w-4xl">
@@ -647,22 +731,30 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                           Images
                         </h3>
                         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                          {strategy.imageUrls.map((url, index) => (
-                            <a
-                              className="block border border-[#d8d1c1] bg-[#f7f5ef]"
-                              href={url}
-                              key={url}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              <img
-                                alt={`${strategy.title} image ${index + 1}`}
-                                className="aspect-[4/3] w-full object-cover"
-                                loading="lazy"
-                                src={url}
-                              />
-                            </a>
-                          ))}
+                          {strategy.imageUrls.map((url, index) => {
+                            const imageAlt = `${strategy.title} image ${
+                              index + 1
+                            }`;
+
+                            return (
+                              <button
+                                aria-label={`Open ${imageAlt}`}
+                                className="block w-full cursor-zoom-in border border-[#d8d1c1] bg-[#f7f5ef]"
+                                key={url}
+                                onClick={() =>
+                                  setLightboxImage({ alt: imageAlt, url })
+                                }
+                                type="button"
+                              >
+                                <img
+                                  alt={imageAlt}
+                                  className="block aspect-[4/3] w-full object-cover"
+                                  loading="lazy"
+                                  src={url}
+                                />
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     ) : null}

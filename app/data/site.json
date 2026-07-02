@@ -5,7 +5,8 @@
     "discord": "https://discord.gg/UN3u73CDzH",
     "slides": "https://docs.google.com/presentation/d/1rPX2rZ80CmHJCKZBziS1BtdodQM4NJhkNIz8EhF9nHM/edit?usp=sharing",
     "github": "https://github.com/bramses/reading-is-a-system",
-    "schedule": "https://docs.google.com/forms/d/e/1FAIpQLSf-xKz2W1DQz4gqjYSe8fGuW-jb40p7rHRPC7LcZdbU5uFm7g/viewform?usp=header"
+    "schedule": "https://docs.google.com/forms/d/e/1FAIpQLSf-xKz2W1DQz4gqjYSe8fGuW-jb40p7rHRPC7LcZdbU5uFm7g/viewform?usp=header",
+    "bookClub": "https://calendar.app.google/kXBcqxRAY7znvfgJA"
   },
   "tags": [
     "comprehension",
@@ -69,6 +70,30 @@
       "tags": ["comprehension", "store", "search", "synthesize", "share", "digilog"],
       "pairedWithIds": [],
       "body": "A commonplace book is your personal knowledge management system. It is a shared platform for storing and searching for information you want to remember across all of your reading. It is a tool that allows you to capture and organize your thoughts, ideas, and insights in a way that is meaningful to you.",
+      "assets": [],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "check-in-electronic-devices",
+      "title": "Check In Electronic Devices",
+      "subtitle": "Use a timer to get off your phone and computer for a set period of time.",
+      "tags": ["bad-habits", "digilog"],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [],
+      "youtubeLinks": [],
+      "imageUrls": ["https://storage.ghost.io/c/0c/cc/0ccc9a8d-054a-4056-b11e-e1bfbbb66387/content/images/size/w2000/2026/04/main-image--28-.jpeg"],
+      "audioFileUrls": []
+    },
+    {
+      "id": "question-based-reading",
+      "title": "Question Based Reading",
+      "subtitle": "Don't start reading a book without a question in mind. Use questions to guide your reading and to help you remember what you read.",
+      "tags": ["synthesize", "comprehension"],
+      "pairedWithIds": ["commonplace-book"],
+      "body": "",
       "assets": [],
       "youtubeLinks": [],
       "imageUrls": [],
