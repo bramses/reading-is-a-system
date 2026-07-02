@@ -94,7 +94,354 @@
       "tags": ["synthesize", "comprehension"],
       "pairedWithIds": ["commonplace-book"],
       "body": "",
-      "assets": [],
+      "assets": [
+        {
+          "label": "Bram's Reading App",
+          "url": "https://apps.apple.com/us/app/brams-reading-app/id6759291875"
+        }
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "ios-questions-shortcut",
+      "title": "iOS Questions Shortcut",
+      "subtitle": "A shortcut for iOS that allows you to quickly revisit your current books with a random question.",
+      "tags": ["comprehension"],
+      "pairedWithIds": ["parallel-reading"],
+      "body": "",
+      "assets": [
+        {
+          "label": "iOS Questions Shortcut",
+          "url": "https://www.icloud.com/shortcuts/4020c264bf6244b78c1d9cf2bd7d6f26"
+        }
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "entity-shorthand",
+      "title": "Entity Shorthand",
+      "subtitle": "A method of quickly storing bookmarks for later reference.",
+      "tags": ["store", "search", "digilog"],
+      "pairedWithIds": ["you-won-t-remember-everything-you-read", "commonplace-book"],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "smart-skimming",
+      "title": "Smart Skimming",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "different-books-call-for-different-reading-strategies",
+      "title": "Different Books Call for Different Reading Strategies",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "always-be-reading",
+      "title": "Always Be Reading",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "audiobook-chores-sleep-timer",
+      "title": "Audiobook Chores & Sleep Timer",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "spaced-repetition",
+      "title": "Spaced Repetition",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "zettelkasten",
+      "title": "Zettelkasten",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "phone-foyer-method",
+      "title": "Phone Foyer Method",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "reading-can-sometimes-be-a-neutral-activity",
+      "title": "Reading Can Sometimes Be a Neutral Activity, but it shouldn't be a Punishment",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "total-sum-of-books",
+      "title": "The Total Sum of Books You'll Ever Read is a Tiny Fraction of the Total Sum of Books You Could Read",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "read-where-the-romance-is",
+      "title": "Read Where The Romance Is",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "ergonomics-of-digital-analog-and-audiobooks",
+      "title": "The Ergonomics of Digital Books, Analog Books, and Audiobooks",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "builder-spender-reading",
+      "title": "Builder Spender Reading",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "finishing-the-book-before-it-ends",
+      "title": "Finishing the Book Before it Ends",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "say-the-subject-first-then-cite-if-asked",
+      "title": "Say the Subject First, Then Cite if Asked",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "make-youtube-playlists-for-each-book-you-read",
+      "title": "Make YouTube Playlists for Each Book You Read",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "buy-physical-copies-of-five-star-books-you-read-digitally",
+      "title": "Buy Physical Copies of Five Star Books You Read Digitally",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "vector-databases-for-marginalia",
+      "title": "Vector Databases for Marginalia",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "make-collages-from-your-books",
+      "title": "Make Collages from Your Books",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "vibe-code-static-sites-for-interactive-book-reviews",
+      "title": "Vibe Code Static Sites for Interactive Book Reviews",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "only-the-first-few-minutes-will-feel-like-work",
+      "title": "Only the First Few Minutes Will Feel Like Work",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "time-to-novelty-competing-with-short-form-content",
+      "title": "Time to Novelty (Competing with Short Form Content)",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "stop-in-the-middle-not-a-good-spot-to-stop",
+      "title": "Stop in the Middle, Not a Good Spot to Stop",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "think-about-books-that-are-not-in-front-of-you",
+      "title": "Think About Books That Are Not In Front of You",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
+      "youtubeLinks": [],
+      "imageUrls": [],
+      "audioFileUrls": []
+    },
+    {
+      "id": "artifact-first-reading",
+      "title": "Artifact First Reading",
+      "subtitle": "",
+      "tags": [],
+      "pairedWithIds": [],
+      "body": "",
+      "assets": [
+      ],
       "youtubeLinks": [],
       "imageUrls": [],
       "audioFileUrls": []
