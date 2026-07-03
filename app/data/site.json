@@ -38,8 +38,12 @@
           "url": "https://youtu.be/MJ_Q6ezoVng"
         },
         {
-          "label": "How to read multiple books at once",
+          "label": "How to read multiple books at once - GlutenbergBible",
           "url": "https://www.youtube.com/watch?v=iYcsIgTNPZA"
+        },
+        {
+          "label": "Reading Multiple Books at the Same Time - Mike Nowhere",
+          "url": "https://www.youtube.com/watch?v=GOdncJRkUh8"
         }
       ],
       "imageUrls": [],
@@ -252,7 +256,10 @@
       "body": "",
       "assets": [
       ],
-      "youtubeLinks": [],
+      "youtubeLinks": [{
+        "label": "The Anxiety Generation Machine Of Phone Use Before Bed- Cal Newport",
+        "url": "https://www.youtube.com/watch?v=Mkp4KNwthl8"
+      }],
       "imageUrls": ["https://storage.ghost.io/c/0c/cc/0ccc9a8d-054a-4056-b11e-e1bfbbb66387/content/images/size/w1600/2026/07/IMG_0355.jpeg"],
       "audioFileUrls": []
     },
