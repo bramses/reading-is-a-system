@@ -186,6 +186,10 @@
       "pairedWithIds": [],
       "body": "",
       "assets": [
+        {
+          "label": "Presentation slides",
+          "url": "https://docs.google.com/presentation/d/1_tKtmyHsssyJPKsmaUEJPdWxxy8r48ukHqiofLalaKw/edit?usp=sharing"
+        }
       ],
       "youtubeLinks": [],
       "imageUrls": [],
@@ -207,11 +211,15 @@
     {
       "id": "spaced-repetition",
       "title": "Spaced Repetition",
-      "subtitle": "",
+      "subtitle": "Use Anki to remember what you read. Spaced repetition is a method of reviewing information at increasing intervals to help you remember it better.",
       "tags": [],
       "pairedWithIds": [],
       "body": "",
       "assets": [
+        {
+          "label": "Anki",
+          "url": "https://apps.ankiweb.net/"
+        }
       ],
       "youtubeLinks": [],
       "imageUrls": [],
