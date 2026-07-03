@@ -28,5 +28,6 @@ export type SiteData = {
     kofi: string;
   };
   tags: string[];
+  starterPackStrategyIds: string[];
   strategies: Strategy[];
 };

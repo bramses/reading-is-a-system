@@ -1,5 +1,5 @@
 {
-  "title": "Reading Is A System",
+  "title": "Reading is a System",
   "subtitle": "Read more widely, deeply, and effectively by treating reading as a system. Try building a cart with strategies that appeal to your goals.",
   "links": {
     "discord": "https://discord.gg/UN3u73CDzH",
@@ -18,6 +18,11 @@
     "share",
     "digilog",
     "bad-habits"
+  ],
+  "starterPackStrategyIds": [
+    "parallel-reading",
+    "question-based-reading",
+    "commonplace-book"
   ],
   "strategies": [
     {
@@ -343,7 +348,12 @@
       "body": "",
       "assets": [
       ],
-      "youtubeLinks": [],
+      "youtubeLinks": [
+        {
+          "label": "I've never had a reading slump, here's how - Horse Jaw",
+          "url": "https://www.youtube.com/watch?v=QR3siE8jmBc"
+        }
+      ],
       "imageUrls": [],
       "audioFileUrls": []
     },

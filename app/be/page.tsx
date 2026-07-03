@@ -163,6 +163,13 @@ function PageLinksEditor({ site }: { site: SiteData }) {
         name="tags"
         rows={5}
       />
+      <TextAreaField
+        defaultValue={listText(site.starterPackStrategyIds)}
+        label="Starter pack strategy IDs"
+        name="starterPackStrategyIds"
+        required={false}
+        rows={4}
+      />
     </section>
   );
 }

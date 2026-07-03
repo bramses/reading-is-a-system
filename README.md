@@ -9,6 +9,7 @@ The site content is in `app/data/site.json`.
 - `title` and `subtitle` control the page heading.
 - `links.discord`, `links.slides`, `links.github`, `links.schedule`, `links.bookClub`, and `links.kofi` control the top links.
 - `tags` controls the checkbox filters and display order.
+- `starterPackStrategyIds` controls the starter pack lightbox order.
 - `strategies` controls the filterable cards.
 - Each strategy supports `title`, `subtitle`, `body`, `tags`, `pairedWithIds`, `assets`, `youtubeLinks`, `imageUrls`, and `audioFileUrls`.
 - `pairedWithIds` is an array of other strategy IDs for in-page navigation.

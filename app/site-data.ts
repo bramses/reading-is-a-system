@@ -93,6 +93,10 @@ function normalizeSiteData(value: unknown): SiteData {
       kofi: readString(links.kofi, "links.kofi"),
     },
     tags: readStringArray(site.tags, "tags"),
+    starterPackStrategyIds: readStringArray(
+      site.starterPackStrategyIds,
+      "starterPackStrategyIds",
+    ),
     strategies: site.strategies.map(readStrategy),
   };
 }

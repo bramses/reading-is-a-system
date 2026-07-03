@@ -117,6 +117,23 @@ function urlsToLinks(urls: string[]) {
   }));
 }
 
+function strategyLinkGroups(strategy: Strategy) {
+  return [
+    {
+      title: "Assets",
+      links: strategy.assets,
+    },
+    {
+      title: "YouTube",
+      links: strategy.youtubeLinks,
+    },
+    {
+      title: "Audio",
+      links: urlsToLinks(strategy.audioFileUrls),
+    },
+  ].filter((group) => group.links.length > 0);
+}
+
 function DiscordIcon() {
   return (
     <svg
@@ -284,6 +301,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     alt: string;
     url: string;
   } | null>(null);
+  const [starterPackIndex, setStarterPackIndex] = useState<number | null>(null);
   const [cartExpanded, setCartExpanded] = useState(false);
   const cartState = useSyncExternalStore(
     subscribeToCartState,
@@ -300,6 +318,22 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         .filter((strategy): strategy is Strategy => Boolean(strategy)),
     [cartStrategyIds, strategyById],
   );
+
+  const starterPackStrategies = useMemo(
+    () =>
+      site.starterPackStrategyIds
+        .map((strategyId) => strategyById.get(strategyId))
+        .filter((strategy): strategy is Strategy => Boolean(strategy)),
+    [site.starterPackStrategyIds, strategyById],
+  );
+  const starterPackStrategy =
+    starterPackIndex === null ? null : starterPackStrategies[starterPackIndex];
+  const starterPackLinkGroups = starterPackStrategy
+    ? strategyLinkGroups(starterPackStrategy)
+    : [];
+  const starterPackInCart = starterPackStrategy
+    ? cartStrategyIds.includes(starterPackStrategy.id)
+    : false;
 
   const filteredStrategies = useMemo(() => {
     if (activeTags.length === 0) {
@@ -336,6 +370,29 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
           .getElementById(`strategy-${strategyId}`)
           ?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
+    });
+  }
+
+  function openStarterPack() {
+    if (starterPackStrategies.length > 0) {
+      setStarterPackIndex(0);
+    }
+  }
+
+  function closeStarterPack() {
+    setStarterPackIndex(null);
+  }
+
+  function moveStarterPack(direction: -1 | 1) {
+    setStarterPackIndex((currentIndex) => {
+      if (currentIndex === null || starterPackStrategies.length === 0) {
+        return currentIndex;
+      }
+
+      return (
+        (currentIndex + direction + starterPackStrategies.length) %
+        starterPackStrategies.length
+      );
     });
   }
 
@@ -426,6 +483,163 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               className="block max-h-[90vh] max-w-full object-contain"
               src={lightboxImage.url}
             />
+          </div>
+        </div>
+      ) : null}
+
+      {starterPackStrategy && starterPackIndex !== null ? (
+        <div
+          aria-label="Starter pack"
+          aria-modal="true"
+          className="fixed inset-0 z-40 flex bg-[#201f1b]/90 p-3 print:hidden sm:p-6"
+          onClick={closeStarterPack}
+          role="dialog"
+        >
+          <button
+            aria-label="Previous starter pack strategy"
+            className="absolute left-3 top-1/2 hidden size-12 -translate-y-1/2 items-center justify-center border border-[#f7f5ef] bg-[#201f1b] text-xl font-semibold text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b] sm:inline-flex"
+            onClick={(event) => {
+              event.stopPropagation();
+              moveStarterPack(-1);
+            }}
+            type="button"
+          >
+            {"<"}
+          </button>
+          <button
+            aria-label="Next starter pack strategy"
+            className="absolute right-3 top-1/2 hidden size-12 -translate-y-1/2 items-center justify-center border border-[#f7f5ef] bg-[#201f1b] text-xl font-semibold text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b] sm:inline-flex"
+            onClick={(event) => {
+              event.stopPropagation();
+              moveStarterPack(1);
+            }}
+            type="button"
+          >
+            {">"}
+          </button>
+
+          <div
+            className="mx-auto flex h-full w-full max-w-3xl flex-col gap-3"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 text-[#f7f5ef]">
+              <p className="text-sm font-semibold uppercase">
+                Starter pack {starterPackIndex + 1} /{" "}
+                {starterPackStrategies.length}
+              </p>
+              <button
+                aria-label="Close starter pack"
+                className="inline-flex size-11 items-center justify-center border border-[#f7f5ef] bg-[#201f1b] text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+                onClick={closeStarterPack}
+                type="button"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
+            <article className="min-h-0 flex-1 overflow-y-auto border border-[#201f1b] bg-[#fffdf8] p-4 sm:p-6">
+              <div className="flex flex-wrap gap-2">
+                {starterPackStrategy.tags.map((tag) => (
+                  <span
+                    className="border border-[#d8d1c1] px-2 py-1 text-xs text-[#5f5a4f]"
+                    key={tag}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-5xl">
+                {starterPackStrategy.title}
+              </h2>
+              <p className="mt-3 text-lg leading-8 text-[#5f5a4f]">
+                {starterPackStrategy.subtitle}
+              </p>
+              {starterPackStrategy.body.trim() ? (
+                <p className="mt-5 max-w-prose leading-7 text-[#333029]">
+                  {starterPackStrategy.body}
+                </p>
+              ) : null}
+
+              {starterPackStrategy.imageUrls[0] ? (
+                <button
+                  aria-label={`Open ${starterPackStrategy.title} image`}
+                  className="mt-5 block w-full cursor-zoom-in border border-[#d8d1c1] bg-[#f7f5ef]"
+                  onClick={() =>
+                    setLightboxImage({
+                      alt: `${starterPackStrategy.title} image`,
+                      url: starterPackStrategy.imageUrls[0],
+                    })
+                  }
+                  type="button"
+                >
+                  <img
+                    alt={`${starterPackStrategy.title} image`}
+                    className="block max-h-72 w-full object-cover"
+                    src={starterPackStrategy.imageUrls[0]}
+                  />
+                </button>
+              ) : null}
+
+              {starterPackLinkGroups.length > 0 ? (
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  {starterPackLinkGroups.map((group) => (
+                    <div key={group.title}>
+                      <h3 className="text-sm font-semibold uppercase">
+                        {group.title}
+                      </h3>
+                      <ul className="mt-3 space-y-2 text-sm">
+                        {group.links.map((link) => (
+                          <li key={link.url}>
+                            <a
+                              className="underline decoration-[#8a826f] underline-offset-4"
+                              href={link.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {link.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              <button
+                className={`mt-6 inline-flex w-full items-center justify-center gap-2 border px-3 py-3 text-sm font-semibold sm:w-auto ${
+                  starterPackInCart
+                    ? "border-[#315d4c] bg-[#315d4c] text-[#fffdf8]"
+                    : "border-[#315d4c] text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8]"
+                }`}
+                onClick={() =>
+                  starterPackInCart
+                    ? removeStrategyFromCart(starterPackStrategy.id)
+                    : addStrategyToCart(starterPackStrategy.id)
+                }
+                type="button"
+              >
+                <CartIcon selected={starterPackInCart} />
+                {starterPackInCart ? "Remove from cart" : "Add to cart"}
+              </button>
+            </article>
+
+            <div className="grid grid-cols-2 gap-3 sm:hidden">
+              <button
+                className="border border-[#f7f5ef] bg-[#201f1b] px-3 py-3 text-sm font-semibold text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+                onClick={() => moveStarterPack(-1)}
+                type="button"
+              >
+                Previous
+              </button>
+              <button
+                className="border border-[#f7f5ef] bg-[#201f1b] px-3 py-3 text-sm font-semibold text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+                onClick={() => moveStarterPack(1)}
+                type="button"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
@@ -545,6 +759,16 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               </label>
             ))}
           </div>
+
+          {starterPackStrategies.length > 0 ? (
+            <button
+              className="mt-4 text-left text-sm font-medium underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
+              onClick={openStarterPack}
+              type="button"
+            >
+              Unsure of where to start? Here&apos;s a starter pack.
+            </button>
+          ) : null}
         </section>
 
         {cartStrategies.length > 0 ? (
@@ -667,20 +891,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               .filter((pairedStrategy): pairedStrategy is Strategy =>
                 Boolean(pairedStrategy),
               );
-            const linkGroups = [
-              {
-                title: "Assets",
-                links: strategy.assets,
-              },
-              {
-                title: "YouTube",
-                links: strategy.youtubeLinks,
-              },
-              {
-                title: "Audio",
-                links: urlsToLinks(strategy.audioFileUrls),
-              },
-            ].filter((group) => group.links.length > 0);
+            const linkGroups = strategyLinkGroups(strategy);
 
             return (
               <article

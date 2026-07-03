@@ -136,6 +136,9 @@ function formDataToSiteData(formData: FormData): SiteData {
       kofi: textValue(formData, "link_kofi"),
     },
     tags: listFromText(blockValue(formData, "tags")),
+    starterPackStrategyIds: listFromText(
+      blockValue(formData, "starterPackStrategyIds"),
+    ),
     strategies: [],
   };
 
