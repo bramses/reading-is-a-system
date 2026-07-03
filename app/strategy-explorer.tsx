@@ -456,7 +456,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Schedule a 1:1 with Bram
+                  1:1 meeting
                 </a>
                 <a
                   className="border-t border-[#d8d1c1] px-3 py-3 hover:bg-[#201f1b] hover:text-[#f7f5ef]"
@@ -464,7 +464,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Come talk to my book club
+                  1:n meeting (book club)
                 </a>
               </div>
             </details>
