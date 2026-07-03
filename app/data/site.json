@@ -318,13 +318,18 @@
     {
       "id": "builder-spender-reading",
       "title": "Builder Spender Reading",
-      "subtitle": "",
-      "tags": [],
-      "pairedWithIds": [],
+      "subtitle": "Building (Active Reading): Set a timer for 10-minute intervals to read (or listen) to a book. Spending (The Mental Dump): Once the timer goes off, immediately capture your thoughts in a commonplace book.",
+      "tags": ["comprehension", "store"],
+      "pairedWithIds": ["commonplace-book", "question-based-reading"],
       "body": "",
       "assets": [
       ],
-      "youtubeLinks": [],
+      "youtubeLinks": [
+        {
+          "label": "How World of Warcraft Made Me a Better Reader",
+          "url": "https://www.youtube.com/watch?v=2_KrvJfvjns"
+        }
+      ],
       "imageUrls": [],
       "audioFileUrls": []
     },
