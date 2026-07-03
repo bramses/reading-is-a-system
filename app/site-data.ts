@@ -90,6 +90,7 @@ function normalizeSiteData(value: unknown): SiteData {
       github: readString(links.github, "links.github"),
       schedule: readString(links.schedule, "links.schedule"),
       bookClub: readString(links.bookClub, "links.bookClub"),
+      kofi: readString(links.kofi, "links.kofi"),
     },
     tags: readStringArray(site.tags, "tags"),
     strategies: site.strategies.map(readStrategy),

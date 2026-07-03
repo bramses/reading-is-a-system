@@ -226,6 +226,27 @@ function CloseIcon() {
   );
 }
 
+function CoffeeIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M10 2v2" />
+      <path d="M14 2v2" />
+      <path d="M16 8h2a3 3 0 0 1 0 6h-2" />
+      <path d="M4 8h12v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z" />
+      <path d="M6 22h8" />
+    </svg>
+  );
+}
+
 function CartIcon({ selected = false }: { selected?: boolean }) {
   return (
     <svg
@@ -468,6 +489,15 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 </a>
               </div>
             </details>
+            <a
+              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              href={site.links.kofi}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <CoffeeIcon />
+              Support the Project
+            </a>
           </nav>
 
           <div className="max-w-4xl">

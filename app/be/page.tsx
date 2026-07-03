@@ -150,6 +150,12 @@ function PageLinksEditor({ site }: { site: SiteData }) {
           name="link_bookClub"
           type="url"
         />
+        <TextField
+          defaultValue={site.links.kofi}
+          label="Ko-fi link"
+          name="link_kofi"
+          type="url"
+        />
       </div>
       <TextAreaField
         defaultValue={listText(site.tags)}
