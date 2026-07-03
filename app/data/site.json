@@ -84,11 +84,16 @@
       "title": "Check In Electronic Devices",
       "subtitle": "VPNs and blockers don't work in the throes of active distraction. Check in your devices to a different room to avoid the temptation.",
       "tags": ["bad-habits", "digilog"],
-      "pairedWithIds": [],
+      "pairedWithIds": ["phone-foyer-method"],
       "body": "",
-      "assets": [],
+      "assets": [
+        {
+          "label": "Pomodoro Timer",
+          "url": "https://www.amazon.com/dp/B0D7JG4VLD?lv=shuf&channelId=500&plpRedirect=mhFallback&th=1"
+        }
+      ],
       "youtubeLinks": [],
-      "imageUrls": [],
+      "imageUrls": ["https://storage.ghost.io/c/0c/cc/0ccc9a8d-054a-4056-b11e-e1bfbbb66387/content/images/size/w1600/2026/07/IMG_0355.jpeg"],
       "audioFileUrls": []
     },
     {
@@ -241,14 +246,14 @@
     {
       "id": "phone-foyer-method",
       "title": "Phone Foyer Method",
-      "subtitle": "",
+      "subtitle": "Leave your phone plugged in in the kitchen or foyer to avoid the temptation of checking it.",
       "tags": [],
-      "pairedWithIds": [],
+      "pairedWithIds": ["check-in-electronic-devices"],
       "body": "",
       "assets": [
       ],
       "youtubeLinks": [],
-      "imageUrls": [],
+      "imageUrls": ["https://storage.ghost.io/c/0c/cc/0ccc9a8d-054a-4056-b11e-e1bfbbb66387/content/images/size/w1600/2026/07/IMG_0355.jpeg"],
       "audioFileUrls": []
     },
     {
