@@ -160,7 +160,7 @@
     },
     {
       "id": "smart-skimming",
-      "title": "Smart Skimming",
+      "title": "Start Skimming",
       "subtitle": "Not all books are meant to be read cover to cover. Skim the parts that are less relevant to your goals.",
       "tags": [],
       "pairedWithIds": [],
@@ -206,7 +206,12 @@
           "url": "https://docs.google.com/presentation/d/1_tKtmyHsssyJPKsmaUEJPdWxxy8r48ukHqiofLalaKw/edit?usp=sharing"
         }
       ],
-      "youtubeLinks": [],
+      "youtubeLinks": [
+        {
+          "label": "Always Be Reading!!",
+          "url": "https://www.youtube.com/watch?v=RhUzefPkfKc"
+        }
+      ],
       "imageUrls": [],
       "audioFileUrls": []
     },
@@ -270,12 +275,12 @@
       "audioFileUrls": []
     },
     {
-      "id": "reading-can-sometimes-be-a-neutral-activity",
-      "title": "Reading Can Sometimes Be a Neutral Activity, but it shouldn't be a Punishment",
-      "subtitle": "",
+      "id": "reading-shouldn-t-be-a-punishment",
+      "title": "Reading Shouldn't Be A Punishment",
+      "subtitle": "Don't moralize reading. Reading is a skill that can be learned and improved upon, and it should be enjoyable.",
       "tags": [],
       "pairedWithIds": [],
-      "body": "",
+      "body": "Often people will only brag about reading books that are difficult or popular as a form of social signaling. Read what brings you joy, and don't feel bad about reading books that are easy.",
       "assets": [
       ],
       "youtubeLinks": [],
