@@ -27,11 +27,59 @@ body {
   }
 
   .print-strategy {
-    min-height: calc(100vh - 1in);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 9.15in;
+    min-height: 0;
+    overflow: hidden;
     break-after: page;
+    break-inside: avoid;
+    page-break-after: always;
+    page-break-inside: avoid;
   }
 
   .print-strategy:last-child {
     break-after: auto;
+    page-break-after: auto;
+  }
+
+  .print-strategy h3 {
+    font-size: 30pt;
+    line-height: 1.12;
+  }
+
+  .print-strategy p {
+    font-size: 14pt;
+    line-height: 1.45;
+  }
+
+  .print-checklist-fields {
+    display: grid !important;
+    flex: 1;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.32in !important;
+    margin-top: 0.35in !important;
+    min-height: 0;
+  }
+
+  .print-checklist-field {
+    display: flex !important;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .print-checklist-field span {
+    font-size: 18pt;
+    line-height: 1.1;
+  }
+
+  .print-checklist-box {
+    flex: 1;
+    height: auto;
+    min-height: 0 !important;
+    padding: 0.18in !important;
+    font-size: 14pt !important;
+    line-height: 1.4 !important;
   }
 }

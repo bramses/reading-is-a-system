@@ -818,14 +818,6 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 cartExpanded ? "mt-4 grid gap-3 sm:gap-4" : "hidden"
               } print:mt-0 print:grid print:gap-0`}
             >
-              <div className="hidden print:block">
-                <h1 className="text-3xl font-semibold print:text-5xl">
-                  {site.title} Checklist
-                </h1>
-                <p className="mt-3 text-sm print:text-lg">
-                  {cartStrategies.length} selected strategies
-                </p>
-              </div>
               {cartStrategies.map((strategy) => {
                 const checklistEntry =
                   checklistEntries[strategy.id] ?? createBlankChecklistEntry();
@@ -853,14 +845,17 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                       </button>
                     </div>
 
-                    <div className="mt-4 grid gap-4 sm:grid-cols-2 print:mt-10 print:grid-cols-1 print:gap-10">
+                    <div className="print-checklist-fields mt-4 grid gap-4 sm:grid-cols-2 print:mt-10 print:grid-cols-1 print:gap-10">
                       {CHECKLIST_FIELDS.map((field) => (
-                        <label className="block" key={field.id}>
+                        <label
+                          className="print-checklist-field block"
+                          key={field.id}
+                        >
                           <span className="text-sm font-semibold uppercase print:text-xl">
                             {field.label}
                           </span>
                           <textarea
-                            className="mt-2 min-h-32 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b] print:mt-4 print:min-h-72 print:resize-none print:border-2 print:p-5 print:text-xl print:leading-8"
+                            className="print-checklist-box mt-2 min-h-32 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b] print:mt-4 print:min-h-72 print:resize-none print:border-2 print:p-5 print:text-xl print:leading-8"
                             onChange={(event) =>
                               updateChecklistEntry(
                                 strategy.id,
