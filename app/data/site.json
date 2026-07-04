@@ -482,8 +482,8 @@
     {
       "id": "think-about-books-that-are-not-in-front-of-you",
       "title": "Think About Books That Are Not In Front of You",
-      "subtitle": "",
-      "tags": [],
+      "subtitle": "Use Post-it notes or phone wallpapers to remind yourself of books you want to read or books you are currently reading.",
+      "tags": ["comprehension"],
       "pairedWithIds": [],
       "body": "",
       "assets": [
@@ -493,11 +493,11 @@
       "audioFileUrls": []
     },
     {
-      "id": "artifact-first-reading",
-      "title": "Artifact First Reading",
-      "subtitle": "",
-      "tags": [],
-      "pairedWithIds": [],
+      "id": "create-while-you-read",
+      "title": "Create While You Read",
+      "subtitle": "Create something while you read to help you remember what you read and to share your insights with others. Art, music, writing, and code are all great ways to create while you read.",
+      "tags": ["share", "synthesize"],
+      "pairedWithIds": ["make-collages-from-your-books", "vibe-code-static-sites-for-interactive-book-reviews"],
       "body": "",
       "assets": [
       ],
