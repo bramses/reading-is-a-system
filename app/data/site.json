@@ -217,14 +217,19 @@
     },
     {
       "id": "audiobook-chores-sleep-timer",
-      "title": "Audiobook Chores & Sleep Timer",
-      "subtitle": "",
+      "title": "How Readers Do Chores Around the House",
+      "subtitle": "Learn how to use audiobooks while doing chores and set a sleep timer to reflect on what you've learned.",
       "tags": [],
       "pairedWithIds": [],
       "body": "",
       "assets": [
       ],
-      "youtubeLinks": [],
+      "youtubeLinks": [
+        {
+          "label": "Get a Cleaner Home and Better Memory At The Same Time",
+          "url": "https://www.youtube.com/watch?v=iuBAV7kWV8A"
+        }
+      ],
       "imageUrls": [],
       "audioFileUrls": []
     },
