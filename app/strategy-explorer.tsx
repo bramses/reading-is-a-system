@@ -1316,43 +1316,6 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             </div>
           </div>
 
-          <div className="mt-6">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <h2
-                id="tag-filter-title"
-                className="text-sm font-semibold uppercase"
-              >
-                Tags
-              </h2>
-              {activeTags.length > 0 ? (
-                <button
-                  className="text-sm underline decoration-[#8a826f] underline-offset-4"
-                  type="button"
-                  onClick={() => setActiveTags([])}
-                >
-                  Clear
-                </button>
-              ) : null}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <label
-                  className="flex cursor-pointer items-center gap-2 border border-[#c8c0ae] bg-[#fffdf8] px-3 py-2 text-sm"
-                  key={tag}
-                >
-                  <input
-                    checked={activeTags.includes(tag)}
-                    className="size-4 accent-[#315d4c]"
-                    onChange={() => toggleTag(tag)}
-                    type="checkbox"
-                  />
-                  {tag}
-                </label>
-              ))}
-            </div>
-          </div>
-
           <div className="mt-4 grid gap-2">
             {starterPackStrategies.length > 0 ? (
               <button
@@ -1395,6 +1358,43 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   </a>
                 </div>
               ) : null}
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <h2
+                id="tag-filter-title"
+                className="text-sm font-semibold uppercase"
+              >
+                Tags
+              </h2>
+              {activeTags.length > 0 ? (
+                <button
+                  className="text-sm underline decoration-[#8a826f] underline-offset-4"
+                  type="button"
+                  onClick={() => setActiveTags([])}
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <label
+                  className="flex cursor-pointer items-center gap-2 border border-[#c8c0ae] bg-[#fffdf8] px-3 py-2 text-sm"
+                  key={tag}
+                >
+                  <input
+                    checked={activeTags.includes(tag)}
+                    className="size-4 accent-[#315d4c]"
+                    onChange={() => toggleTag(tag)}
+                    type="checkbox"
+                  />
+                  {tag}
+                </label>
+              ))}
             </div>
           </div>
         </section>
