@@ -33,6 +33,7 @@ type ReadingTimerState = {
 const CART_STORAGE_KEY = "reading-is-a-system-cart";
 const READING_TIMER_STORAGE_KEY = "reading-is-a-system-reading-timer";
 const KINDLE_APP_DEEP_LINK = "kindle://";
+const AUDIBLE_APP_DEEP_LINK = "audible://";
 const KINDLE_WEB_READER_URL = "https://read.amazon.com/kindle-library";
 const READING_TIMER_BLOCK_COUNT = 10;
 const READING_TIMER_BLOCK_MINUTES = 5;
@@ -1398,7 +1399,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef]"
                     href={KINDLE_APP_DEEP_LINK}
                   >
-                    Open in Kindle app
+                    Open Kindle app
                   </a>
                   <a
                     className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
@@ -1406,7 +1407,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     rel="noreferrer"
                     target="_blank"
                   >
-                    Open in browser
+                    Open Kindle in browser
+                  </a>
+                  <a
+                    className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                    href={AUDIBLE_APP_DEEP_LINK}
+                  >
+                    Open Audible app
                   </a>
                 </div>
               ) : null}
