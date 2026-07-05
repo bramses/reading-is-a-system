@@ -2,7 +2,12 @@
 
 /* eslint-disable @next/next/no-img-element -- Image URLs come from JSON and should not require Next config updates per host. */
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import {
+  type MouseEvent,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import type { SiteData, Strategy } from "./site-types";
 
@@ -20,6 +25,8 @@ type CartState = {
 };
 
 const CART_STORAGE_KEY = "reading-is-a-system-cart";
+const KINDLE_APP_DEEP_LINK = "kindle://";
+const KINDLE_WEB_READER_URL = "https://read.amazon.com/kindle-library";
 
 const BLANK_CART_STATE: CartState = {
   strategyIds: [],
@@ -33,6 +40,31 @@ const CHECKLIST_FIELDS: Array<{ id: ChecklistField; label: string }> = [
   { id: "whereNow", label: "Where are you now?" },
   { id: "goal", label: "Goal" },
 ];
+
+type NavigatorWithUserAgentData = Navigator & {
+  userAgentData?: {
+    mobile?: boolean;
+  };
+};
+
+function isLikelyMobileDevice() {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+
+  const navigatorWithUserAgentData = navigator as NavigatorWithUserAgentData;
+
+  if (navigatorWithUserAgentData.userAgentData?.mobile) {
+    return true;
+  }
+
+  const userAgent = navigator.userAgent;
+  const mobileUserAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent);
+  const iPadDesktopMode =
+    /Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1;
+
+  return mobileUserAgent || iPadDesktopMode;
+}
 
 function createBlankChecklistEntry(): ChecklistEntry {
   return {
@@ -50,6 +82,18 @@ function createBlankCartState(): CartState {
 
 function getServerCartSnapshot() {
   return BLANK_CART_STATE;
+}
+
+function getServerMobileSnapshot() {
+  return false;
+}
+
+function getClientMobileSnapshot() {
+  return isLikelyMobileDevice();
+}
+
+function subscribeToMobileSnapshot() {
+  return () => {};
 }
 
 function readStoredCartState(strategyById: Map<string, Strategy>): CartState {
@@ -303,6 +347,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   } | null>(null);
   const [starterPackIndex, setStarterPackIndex] = useState<number | null>(null);
   const [cartExpanded, setCartExpanded] = useState(false);
+  const useKindleDeepLink = useSyncExternalStore(
+    subscribeToMobileSnapshot,
+    getClientMobileSnapshot,
+    getServerMobileSnapshot,
+  );
   const cartState = useSyncExternalStore(
     subscribeToCartState,
     () => getClientCartSnapshot(strategyById),
@@ -334,6 +383,9 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const starterPackInCart = starterPackStrategy
     ? cartStrategyIds.includes(starterPackStrategy.id)
     : false;
+  const kindleLinkHref = useKindleDeepLink
+    ? KINDLE_APP_DEEP_LINK
+    : KINDLE_WEB_READER_URL;
 
   const filteredStrategies = useMemo(() => {
     if (activeTags.length === 0) {
@@ -394,6 +446,30 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         starterPackStrategies.length
       );
     });
+  }
+
+  function openKindleLink(event: MouseEvent<HTMLAnchorElement>) {
+    if (!useKindleDeepLink) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const fallbackTimer = window.setTimeout(() => {
+      if (document.visibilityState === "visible") {
+        window.location.href = KINDLE_WEB_READER_URL;
+      }
+    }, 1200);
+
+    const cancelFallback = () => {
+      if (document.visibilityState === "hidden") {
+        window.clearTimeout(fallbackTimer);
+        document.removeEventListener("visibilitychange", cancelFallback);
+      }
+    };
+
+    document.addEventListener("visibilitychange", cancelFallback);
+    window.location.href = KINDLE_APP_DEEP_LINK;
   }
 
   function addStrategyToCart(strategyId: string) {
@@ -760,15 +836,27 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             ))}
           </div>
 
-          {starterPackStrategies.length > 0 ? (
-            <button
-              className="mt-4 text-left text-sm font-medium underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
-              onClick={openStarterPack}
-              type="button"
+          <div className="mt-4 grid gap-2">
+            {starterPackStrategies.length > 0 ? (
+              <button
+                className="text-left text-sm font-medium underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
+                onClick={openStarterPack}
+                type="button"
+              >
+                Unsure of where to start? Here&apos;s a starter pack.
+              </button>
+            ) : null}
+            <a
+              className="text-sm font-medium underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
+              href={kindleLinkHref}
+              onClick={openKindleLink}
+              rel={useKindleDeepLink ? undefined : "noreferrer"}
+              target={useKindleDeepLink ? undefined : "_blank"}
             >
-              Unsure of where to start? Here&apos;s a starter pack.
-            </button>
-          ) : null}
+              Are you a Kindle user? Yes? Press this link to read right now.
+              Go. Do it!!
+            </a>
+          </div>
         </section>
 
         {cartStrategies.length > 0 ? (
