@@ -53,6 +53,7 @@ let cartStateCache: CartState | null = null;
 const cartStateListeners = new Set<() => void>();
 let readingTimerStateCache: ReadingTimerState | null = null;
 const readingTimerStateListeners = new Set<() => void>();
+const shuffledStrategiesBySource = new WeakMap<readonly Strategy[], Strategy[]>();
 
 const CHECKLIST_FIELDS: Array<{ id: ChecklistField; label: string }> = [
   { id: "whereNow", label: "Where are you now?" },
@@ -261,6 +262,10 @@ function subscribeToReadingTimerState(listener: () => void) {
   };
 }
 
+function subscribeToStrategyOrder() {
+  return () => {};
+}
+
 function writeCartState(cartState: CartState) {
   cartStateCache = cartState;
 
@@ -306,6 +311,42 @@ function formatReadingTimer(ms: number) {
   const seconds = totalSeconds % 60;
 
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function shuffleStrategies(strategies: readonly Strategy[]) {
+  const shuffled = [...strategies];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[randomIndex]] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+}
+
+function shuffledStrategies(strategies: readonly Strategy[]) {
+  const cachedStrategies = shuffledStrategiesBySource.get(strategies);
+
+  if (cachedStrategies) {
+    return cachedStrategies;
+  }
+
+  const shuffled = shuffleStrategies(strategies);
+
+  shuffledStrategiesBySource.set(strategies, shuffled);
+
+  return shuffled;
+}
+
+function reshuffleStrategies(strategies: readonly Strategy[]) {
+  const shuffled = shuffleStrategies(strategies);
+
+  shuffledStrategiesBySource.set(strategies, shuffled);
+
+  return shuffled;
 }
 
 function linkLabel(url: string) {
@@ -512,10 +553,16 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const [cartExpanded, setCartExpanded] = useState(false);
   const [currentTimeMs, setCurrentTimeMs] = useState(() => Date.now());
   const [kindleMenuOpen, setKindleMenuOpen] = useState(false);
+  const [, forceStrategyShuffleRender] = useState(0);
   const readingTimerState = useSyncExternalStore(
     subscribeToReadingTimerState,
     getClientReadingTimerSnapshot,
     getServerReadingTimerSnapshot,
+  );
+  const shuffledStrategyOrder = useSyncExternalStore(
+    subscribeToStrategyOrder,
+    () => shuffledStrategies(site.strategies),
+    () => site.strategies,
   );
   const cartState = useSyncExternalStore(
     subscribeToCartState,
@@ -666,13 +713,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
 
   const filteredStrategies = useMemo(() => {
     if (activeTags.length === 0) {
-      return site.strategies;
+      return shuffledStrategyOrder;
     }
 
-    return site.strategies.filter((strategy) =>
+    return shuffledStrategyOrder.filter((strategy) =>
       activeTags.some((tag) => strategy.tags.includes(tag)),
     );
-  }, [activeTags, site.strategies]);
+  }, [activeTags, shuffledStrategyOrder]);
 
   function toggleTag(tag: string) {
     setActiveTags((currentTags) =>
@@ -687,6 +734,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     setExpandedId((currentExpandedId) =>
       currentExpandedId === strategyId ? null : strategyId,
     );
+  }
+
+  function shuffleVisibleStrategies() {
+    reshuffleStrategies(site.strategies);
+    forceStrategyShuffleRender((version) => version + 1);
   }
 
   function moveToStrategy(strategyId: string) {
@@ -1502,6 +1554,16 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             </div>
           </section>
         ) : null}
+
+        <div className="flex justify-end print:hidden">
+          <button
+            className="w-full border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+            onClick={shuffleVisibleStrategies}
+            type="button"
+          >
+            Shuffle strategies
+          </button>
+        </div>
 
         <section className="grid gap-4 md:grid-cols-2 print:hidden">
           {filteredStrategies.map((strategy, index) => {
