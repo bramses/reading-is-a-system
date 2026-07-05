@@ -35,6 +35,7 @@ const READING_TIMER_STORAGE_KEY = "reading-is-a-system-reading-timer";
 const KINDLE_APP_DEEP_LINK = "kindle://";
 const AUDIBLE_APP_DEEP_LINK = "audible://";
 const KINDLE_WEB_READER_URL = "https://read.amazon.com/kindle-library";
+const AUDIBLE_WEB_URL = "https://www.audible.com/library/titles";
 const READING_TIMER_BLOCK_COUNT = 10;
 const READING_TIMER_BLOCK_MINUTES = 5;
 const READING_TIMER_BLOCK_MS = READING_TIMER_BLOCK_MINUTES * 60 * 1000;
@@ -1414,6 +1415,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     href={AUDIBLE_APP_DEEP_LINK}
                   >
                     Open Audible app
+                  </a>
+                  <a
+                    className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                    href={AUDIBLE_WEB_URL}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Open Audible in browser
                   </a>
                 </div>
               ) : null}
