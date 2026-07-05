@@ -2,12 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Image URLs come from JSON and should not require Next config updates per host. */
 
-import {
-  type MouseEvent,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import type { SiteData, Strategy } from "./site-types";
 
@@ -24,46 +19,58 @@ type CartState = {
   checklistEntries: Record<string, ChecklistEntry>;
 };
 
+type ReadingTimerState = {
+  completedCount: number;
+  selectedThroughIndex: number | null;
+  activeTimer: {
+    blocks: number;
+    endsAt: number;
+    pausedRemainingMs: number | null;
+    startedAt: number;
+  } | null;
+};
+
 const CART_STORAGE_KEY = "reading-is-a-system-cart";
+const READING_TIMER_STORAGE_KEY = "reading-is-a-system-reading-timer";
 const KINDLE_APP_DEEP_LINK = "kindle://";
 const KINDLE_WEB_READER_URL = "https://read.amazon.com/kindle-library";
+const READING_TIMER_BLOCK_COUNT = 10;
+const READING_TIMER_BLOCK_MINUTES = 5;
+const READING_TIMER_BLOCK_MS = READING_TIMER_BLOCK_MINUTES * 60 * 1000;
 
 const BLANK_CART_STATE: CartState = {
   strategyIds: [],
   checklistEntries: {},
 };
 
+const BLANK_READING_TIMER_STATE: ReadingTimerState = {
+  completedCount: 0,
+  selectedThroughIndex: null,
+  activeTimer: null,
+};
+
 let cartStateCache: CartState | null = null;
 const cartStateListeners = new Set<() => void>();
+let readingTimerStateCache: ReadingTimerState | null = null;
+const readingTimerStateListeners = new Set<() => void>();
 
 const CHECKLIST_FIELDS: Array<{ id: ChecklistField; label: string }> = [
   { id: "whereNow", label: "Where are you now?" },
   { id: "goal", label: "Goal" },
 ];
 
-type NavigatorWithUserAgentData = Navigator & {
-  userAgentData?: {
-    mobile?: boolean;
+type WakeLockSentinel = {
+  release: () => Promise<void>;
+};
+
+type NavigatorWithWakeLock = Navigator & {
+  wakeLock?: {
+    request: (type: "screen") => Promise<WakeLockSentinel>;
   };
 };
 
-function isLikelyMobileDevice() {
-  if (typeof navigator === "undefined") {
-    return false;
-  }
-
-  const navigatorWithUserAgentData = navigator as NavigatorWithUserAgentData;
-
-  if (navigatorWithUserAgentData.userAgentData?.mobile) {
-    return true;
-  }
-
-  const userAgent = navigator.userAgent;
-  const mobileUserAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent);
-  const iPadDesktopMode =
-    /Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1;
-
-  return mobileUserAgent || iPadDesktopMode;
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
 
 function createBlankChecklistEntry(): ChecklistEntry {
@@ -80,20 +87,103 @@ function createBlankCartState(): CartState {
   };
 }
 
+function createBlankReadingTimerState(): ReadingTimerState {
+  return {
+    completedCount: 0,
+    selectedThroughIndex: null,
+    activeTimer: null,
+  };
+}
+
 function getServerCartSnapshot() {
   return BLANK_CART_STATE;
 }
 
-function getServerMobileSnapshot() {
-  return false;
+function getServerReadingTimerSnapshot() {
+  return BLANK_READING_TIMER_STATE;
 }
 
-function getClientMobileSnapshot() {
-  return isLikelyMobileDevice();
-}
+function normalizeReadingTimerState(
+  timerState: Partial<ReadingTimerState>,
+): ReadingTimerState {
+  const completedCount = clampNumber(
+    Math.floor(Number(timerState.completedCount) || 0),
+    0,
+    READING_TIMER_BLOCK_COUNT,
+  );
+  const selectedThroughIndex =
+    completedCount < READING_TIMER_BLOCK_COUNT &&
+    typeof timerState.selectedThroughIndex === "number"
+      ? clampNumber(
+          Math.floor(timerState.selectedThroughIndex),
+          completedCount,
+          READING_TIMER_BLOCK_COUNT - 1,
+        )
+      : null;
+  const activeTimer = timerState.activeTimer;
 
-function subscribeToMobileSnapshot() {
-  return () => {};
+  if (completedCount >= READING_TIMER_BLOCK_COUNT) {
+    return {
+      completedCount,
+      selectedThroughIndex: null,
+      activeTimer: null,
+    };
+  }
+
+  if (
+    activeTimer &&
+    Number.isFinite(activeTimer.blocks) &&
+    Number.isFinite(activeTimer.endsAt) &&
+    Number.isFinite(activeTimer.startedAt)
+  ) {
+    const blocks = clampNumber(
+      Math.floor(activeTimer.blocks),
+      1,
+      READING_TIMER_BLOCK_COUNT - completedCount,
+    );
+
+    const pausedRemainingMs =
+      typeof activeTimer.pausedRemainingMs === "number"
+        ? clampNumber(
+            activeTimer.pausedRemainingMs,
+            0,
+            blocks * READING_TIMER_BLOCK_MS,
+          )
+        : null;
+
+    if (pausedRemainingMs === null && Date.now() >= activeTimer.endsAt) {
+      return {
+        completedCount: clampNumber(
+          completedCount + blocks,
+          0,
+          READING_TIMER_BLOCK_COUNT,
+        ),
+        selectedThroughIndex: null,
+        activeTimer: null,
+      };
+    }
+
+    return {
+      completedCount,
+      selectedThroughIndex: clampNumber(
+        completedCount + blocks - 1,
+        completedCount,
+        READING_TIMER_BLOCK_COUNT - 1,
+      ),
+      activeTimer: {
+        blocks,
+        endsAt: activeTimer.endsAt,
+        pausedRemainingMs,
+        startedAt: activeTimer.startedAt,
+      },
+    };
+  }
+
+  return {
+    completedCount,
+    selectedThroughIndex,
+    activeTimer: null,
+  };
 }
 
 function readStoredCartState(strategyById: Map<string, Strategy>): CartState {
@@ -127,11 +217,47 @@ function getClientCartSnapshot(strategyById: Map<string, Strategy>) {
   return cartStateCache;
 }
 
+function readStoredReadingTimerState(): ReadingTimerState {
+  if (typeof window === "undefined") {
+    return createBlankReadingTimerState();
+  }
+
+  try {
+    const storedTimerState = window.sessionStorage.getItem(
+      READING_TIMER_STORAGE_KEY,
+    );
+
+    if (!storedTimerState) {
+      return createBlankReadingTimerState();
+    }
+
+    return normalizeReadingTimerState(
+      JSON.parse(storedTimerState) as Partial<ReadingTimerState>,
+    );
+  } catch {
+    return createBlankReadingTimerState();
+  }
+}
+
+function getClientReadingTimerSnapshot() {
+  readingTimerStateCache ??= readStoredReadingTimerState();
+
+  return readingTimerStateCache;
+}
+
 function subscribeToCartState(listener: () => void) {
   cartStateListeners.add(listener);
 
   return () => {
     cartStateListeners.delete(listener);
+  };
+}
+
+function subscribeToReadingTimerState(listener: () => void) {
+  readingTimerStateListeners.add(listener);
+
+  return () => {
+    readingTimerStateListeners.delete(listener);
   };
 }
 
@@ -143,6 +269,43 @@ function writeCartState(cartState: CartState) {
   }
 
   cartStateListeners.forEach((listener) => listener());
+}
+
+function writeReadingTimerState(timerState: ReadingTimerState) {
+  readingTimerStateCache = normalizeReadingTimerState(timerState);
+
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(
+      READING_TIMER_STORAGE_KEY,
+      JSON.stringify(readingTimerStateCache),
+    );
+  }
+
+  readingTimerStateListeners.forEach((listener) => listener());
+}
+
+function completeActiveReadingTimer(timerState: ReadingTimerState) {
+  if (!timerState.activeTimer) {
+    return timerState;
+  }
+
+  return {
+    completedCount: clampNumber(
+      timerState.completedCount + timerState.activeTimer.blocks,
+      0,
+      READING_TIMER_BLOCK_COUNT,
+    ),
+    selectedThroughIndex: null,
+    activeTimer: null,
+  };
+}
+
+function formatReadingTimer(ms: number) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
 function linkLabel(url: string) {
@@ -347,10 +510,12 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   } | null>(null);
   const [starterPackIndex, setStarterPackIndex] = useState<number | null>(null);
   const [cartExpanded, setCartExpanded] = useState(false);
-  const useKindleDeepLink = useSyncExternalStore(
-    subscribeToMobileSnapshot,
-    getClientMobileSnapshot,
-    getServerMobileSnapshot,
+  const [currentTimeMs, setCurrentTimeMs] = useState(() => Date.now());
+  const [kindleMenuOpen, setKindleMenuOpen] = useState(false);
+  const readingTimerState = useSyncExternalStore(
+    subscribeToReadingTimerState,
+    getClientReadingTimerSnapshot,
+    getServerReadingTimerSnapshot,
   );
   const cartState = useSyncExternalStore(
     subscribeToCartState,
@@ -383,9 +548,121 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const starterPackInCart = starterPackStrategy
     ? cartStrategyIds.includes(starterPackStrategy.id)
     : false;
-  const kindleLinkHref = useKindleDeepLink
-    ? KINDLE_APP_DEEP_LINK
-    : KINDLE_WEB_READER_URL;
+  const activeReadingTimer = readingTimerState.activeTimer;
+  const readingTimerPaused =
+    activeReadingTimer?.pausedRemainingMs !== null &&
+    activeReadingTimer?.pausedRemainingMs !== undefined;
+  const readingTimerSelectedThroughIndex =
+    activeReadingTimer === null
+      ? readingTimerState.selectedThroughIndex ??
+        (readingTimerState.completedCount < READING_TIMER_BLOCK_COUNT
+          ? readingTimerState.completedCount
+          : null)
+      : readingTimerState.completedCount + activeReadingTimer.blocks - 1;
+  const readingTimerSelectedBlocks =
+    readingTimerSelectedThroughIndex === null
+      ? 0
+      : Math.max(
+          0,
+          readingTimerSelectedThroughIndex - readingTimerState.completedCount + 1,
+        );
+  const readingTimerSelectedMinutes =
+    readingTimerSelectedBlocks * READING_TIMER_BLOCK_MINUTES;
+  const readingTimerRemainingMs = activeReadingTimer
+    ? readingTimerPaused
+      ? activeReadingTimer.pausedRemainingMs ?? 0
+      : Math.max(0, activeReadingTimer.endsAt - currentTimeMs)
+    : readingTimerSelectedBlocks * READING_TIMER_BLOCK_MS;
+  const readingTimerElapsedMs = activeReadingTimer
+    ? activeReadingTimer.blocks * READING_TIMER_BLOCK_MS -
+      readingTimerRemainingMs
+    : 0;
+  const readingTimerDisplay = formatReadingTimer(readingTimerRemainingMs);
+  const readingTimerCompletedMinutes =
+    readingTimerState.completedCount * READING_TIMER_BLOCK_MINUTES;
+  const readingTimerTotalMinutes =
+    READING_TIMER_BLOCK_COUNT * READING_TIMER_BLOCK_MINUTES;
+  const readingTimerComplete =
+    readingTimerState.completedCount >= READING_TIMER_BLOCK_COUNT;
+
+  useEffect(() => {
+    if (!activeReadingTimer || readingTimerPaused) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setCurrentTimeMs(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [activeReadingTimer, readingTimerPaused]);
+
+  useEffect(() => {
+    if (!activeReadingTimer) {
+      document.title = site.title;
+      return;
+    }
+
+    document.title = readingTimerPaused
+      ? `${readingTimerDisplay} paused · ${site.title}`
+      : `${readingTimerDisplay} reading · ${site.title}`;
+
+    return () => {
+      document.title = site.title;
+    };
+  }, [activeReadingTimer, readingTimerDisplay, readingTimerPaused, site.title]);
+
+  useEffect(() => {
+    if (!activeReadingTimer || readingTimerPaused) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      writeReadingTimerState(
+        completeActiveReadingTimer(getClientReadingTimerSnapshot()),
+      );
+    }, Math.max(0, activeReadingTimer.endsAt - Date.now()));
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [activeReadingTimer, readingTimerPaused]);
+
+  useEffect(() => {
+    if (
+      !activeReadingTimer ||
+      readingTimerPaused ||
+      typeof navigator === "undefined"
+    ) {
+      return;
+    }
+
+    const navigatorWithWakeLock = navigator as NavigatorWithWakeLock;
+    let wakeLockSentinel: WakeLockSentinel | null = null;
+    let didCancelWakeLock = false;
+
+    async function requestWakeLock() {
+      try {
+        wakeLockSentinel =
+          (await navigatorWithWakeLock.wakeLock?.request("screen")) ?? null;
+
+        if (didCancelWakeLock) {
+          await wakeLockSentinel?.release();
+        }
+      } catch {
+        wakeLockSentinel = null;
+      }
+    }
+
+    void requestWakeLock();
+
+    return () => {
+      didCancelWakeLock = true;
+      void wakeLockSentinel?.release();
+    };
+  }, [activeReadingTimer, readingTimerPaused]);
 
   const filteredStrategies = useMemo(() => {
     if (activeTags.length === 0) {
@@ -448,28 +725,121 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     });
   }
 
-  function openKindleLink(event: MouseEvent<HTMLAnchorElement>) {
-    if (!useKindleDeepLink) {
+  function selectReadingTimerBlock(blockIndex: number) {
+    const currentTimerState = getClientReadingTimerSnapshot();
+
+    if (
+      currentTimerState.activeTimer ||
+      blockIndex < currentTimerState.completedCount
+    ) {
       return;
     }
 
-    event.preventDefault();
+    writeReadingTimerState({
+      ...currentTimerState,
+      selectedThroughIndex:
+        currentTimerState.selectedThroughIndex === blockIndex
+          ? null
+          : blockIndex,
+    });
+  }
 
-    const fallbackTimer = window.setTimeout(() => {
-      if (document.visibilityState === "visible") {
-        window.location.href = KINDLE_WEB_READER_URL;
-      }
-    }, 1200);
+  function startReadingTimer() {
+    const currentTimerState = getClientReadingTimerSnapshot();
 
-    const cancelFallback = () => {
-      if (document.visibilityState === "hidden") {
-        window.clearTimeout(fallbackTimer);
-        document.removeEventListener("visibilitychange", cancelFallback);
-      }
-    };
+    if (
+      currentTimerState.activeTimer ||
+      currentTimerState.completedCount >= READING_TIMER_BLOCK_COUNT
+    ) {
+      return;
+    }
 
-    document.addEventListener("visibilitychange", cancelFallback);
-    window.location.href = KINDLE_APP_DEEP_LINK;
+    const selectedThroughIndex =
+      currentTimerState.selectedThroughIndex === null
+        ? currentTimerState.completedCount
+        : currentTimerState.selectedThroughIndex;
+    const blocks = clampNumber(
+      selectedThroughIndex - currentTimerState.completedCount + 1,
+      1,
+      READING_TIMER_BLOCK_COUNT - currentTimerState.completedCount,
+    );
+    const startedAt = Date.now();
+
+    writeReadingTimerState({
+      completedCount: currentTimerState.completedCount,
+      selectedThroughIndex: currentTimerState.completedCount + blocks - 1,
+      activeTimer: {
+        blocks,
+        endsAt: startedAt + blocks * READING_TIMER_BLOCK_MS,
+        pausedRemainingMs: null,
+        startedAt,
+      },
+    });
+  }
+
+  function pauseReadingTimer() {
+    const currentTimerState = getClientReadingTimerSnapshot();
+
+    if (
+      !currentTimerState.activeTimer ||
+      currentTimerState.activeTimer.pausedRemainingMs !== null
+    ) {
+      return;
+    }
+
+    const pausedRemainingMs = Math.max(
+      0,
+      currentTimerState.activeTimer.endsAt - Date.now(),
+    );
+
+    if (pausedRemainingMs === 0) {
+      writeReadingTimerState(completeActiveReadingTimer(currentTimerState));
+      return;
+    }
+
+    writeReadingTimerState({
+      ...currentTimerState,
+      activeTimer: {
+        ...currentTimerState.activeTimer,
+        pausedRemainingMs,
+      },
+    });
+  }
+
+  function resumeReadingTimer() {
+    const currentTimerState = getClientReadingTimerSnapshot();
+    const activeTimer = currentTimerState.activeTimer;
+
+    if (!activeTimer || activeTimer.pausedRemainingMs === null) {
+      return;
+    }
+
+    writeReadingTimerState({
+      ...currentTimerState,
+      activeTimer: {
+        ...activeTimer,
+        endsAt: Date.now() + activeTimer.pausedRemainingMs,
+        pausedRemainingMs: null,
+      },
+    });
+  }
+
+  function cancelReadingTimer() {
+    const currentTimerState = getClientReadingTimerSnapshot();
+
+    if (!currentTimerState.activeTimer) {
+      return;
+    }
+
+    writeReadingTimerState({
+      completedCount: currentTimerState.completedCount,
+      selectedThroughIndex: null,
+      activeTimer: null,
+    });
+  }
+
+  function resetReadingTimer() {
+    writeReadingTimerState(createBlankReadingTimerState());
   }
 
   function addStrategyToCart(strategyId: string) {
@@ -836,6 +1206,148 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             ))}
           </div>
 
+          <div
+            aria-labelledby="reading-timer-title"
+            className="mt-6 border border-[#d8d1c1] bg-[#fffdf8] p-4"
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3
+                  className="text-sm font-semibold uppercase"
+                  id="reading-timer-title"
+                >
+                  Start reading right now
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-[#5f5a4f]">
+                  Each square represents 5 minutes. Click a square to choose
+                  how far to go.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                <p
+                  aria-live="polite"
+                  className="min-w-20 text-sm font-semibold tabular-nums"
+                >
+                  {activeReadingTimer
+                    ? readingTimerPaused
+                      ? `${readingTimerDisplay} paused`
+                      : `${readingTimerDisplay} left`
+                    : readingTimerComplete
+                      ? `${readingTimerTotalMinutes} min logged`
+                      : `${readingTimerSelectedMinutes} min selected`}
+                </p>
+                {activeReadingTimer ? (
+                  <>
+                    <button
+                      className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                      onClick={
+                        readingTimerPaused
+                          ? resumeReadingTimer
+                          : pauseReadingTimer
+                      }
+                      type="button"
+                    >
+                      {readingTimerPaused ? "Resume" : "Pause"}
+                    </button>
+                    <button
+                      className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                      onClick={cancelReadingTimer}
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                    disabled={readingTimerComplete}
+                    onClick={startReadingTimer}
+                    type="button"
+                  >
+                    Start
+                  </button>
+                )}
+                {readingTimerState.completedCount > 0 && !activeReadingTimer ? (
+                  <button
+                    className="text-sm underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
+                    onClick={resetReadingTimer}
+                    type="button"
+                  >
+                    Reset
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            <div
+              aria-label={`${readingTimerCompletedMinutes} of ${readingTimerTotalMinutes} reading minutes logged`}
+              className="mt-4 grid grid-cols-10 gap-1 sm:gap-2"
+            >
+              {Array.from({ length: READING_TIMER_BLOCK_COUNT }).map(
+                (_, blockIndex) => {
+                  const blockEndMinutes =
+                    (blockIndex + 1) * READING_TIMER_BLOCK_MINUTES;
+                  const blockCompleted =
+                    blockIndex < readingTimerState.completedCount;
+                  const blockSelected =
+                    !blockCompleted &&
+                    readingTimerSelectedThroughIndex !== null &&
+                    blockIndex <= readingTimerSelectedThroughIndex;
+                  const blockDisabled =
+                    Boolean(activeReadingTimer) || blockCompleted;
+                  const activeBlockProgress =
+                    activeReadingTimer && blockSelected
+                      ? clampNumber(
+                          (readingTimerElapsedMs -
+                            (blockIndex - readingTimerState.completedCount) *
+                              READING_TIMER_BLOCK_MS) /
+                            READING_TIMER_BLOCK_MS,
+                          0,
+                          1,
+                        )
+                      : 0;
+                  const blockFillProgress = blockCompleted
+                    ? 1
+                    : activeBlockProgress;
+
+                  return (
+                    <button
+                      aria-label={`${blockEndMinutes - READING_TIMER_BLOCK_MINUTES} to ${blockEndMinutes} minutes`}
+                      aria-pressed={blockCompleted || blockSelected}
+                      className={`relative aspect-square overflow-hidden border text-[0.65rem] font-semibold tabular-nums transition-colors ${
+                        blockCompleted
+                          ? "border-[#315d4c] bg-white text-[#fffdf8]"
+                          : blockSelected
+                            ? "border-[#201f1b] bg-[#ede5d4] text-[#201f1b]"
+                            : "border-[#c8c0ae] bg-white text-[#5f5a4f] hover:border-[#201f1b]"
+                      } disabled:cursor-default`}
+                      disabled={blockDisabled}
+                      key={blockIndex}
+                      onClick={() => selectReadingTimerBlock(blockIndex)}
+                      type="button"
+                    >
+                      {blockFillProgress > 0 ? (
+                        <span
+                          aria-hidden="true"
+                          className="absolute inset-x-0 bottom-0 bg-[#315d4c] transition-[height] duration-500 ease-linear"
+                          style={{ height: `${blockFillProgress * 100}%` }}
+                        />
+                      ) : null}
+                      <span
+                        className={`relative z-10 ${
+                          blockFillProgress > 0.65 ? "text-[#fffdf8]" : ""
+                        }`}
+                      >
+                        {blockEndMinutes}
+                      </span>
+                    </button>
+                  );
+                },
+              )}
+            </div>
+          </div>
+
           <div className="mt-4 grid gap-2">
             {starterPackStrategies.length > 0 ? (
               <button
@@ -846,16 +1358,39 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 Unsure of where to start? Here&apos;s a starter pack.
               </button>
             ) : null}
-            <a
-              className="text-sm font-medium underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
-              href={kindleLinkHref}
-              onClick={openKindleLink}
-              rel={useKindleDeepLink ? undefined : "noreferrer"}
-              target={useKindleDeepLink ? undefined : "_blank"}
-            >
-              Are you a Kindle user? Yes? Press this link to read right now.
-              Go. Do it!!
-            </a>
+            <div className="grid justify-items-start gap-2">
+              <button
+                aria-controls="kindle-reader-menu"
+                aria-expanded={kindleMenuOpen}
+                className="text-left text-sm font-medium underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
+                onClick={() => setKindleMenuOpen((open) => !open)}
+                type="button"
+              >
+                Are you a Kindle user? Yes? Press this button to read right
+                now. Go. Do it!!
+              </button>
+              {kindleMenuOpen ? (
+                <div
+                  className="flex flex-col gap-2 sm:flex-row"
+                  id="kindle-reader-menu"
+                >
+                  <a
+                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                    href={KINDLE_APP_DEEP_LINK}
+                  >
+                    Open in Kindle app
+                  </a>
+                  <a
+                    className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                    href={KINDLE_WEB_READER_URL}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Open in browser
+                  </a>
+                </div>
+              ) : null}
+            </div>
           </div>
         </section>
 
