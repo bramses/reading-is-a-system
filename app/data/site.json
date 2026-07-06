@@ -439,11 +439,15 @@
     {
       "id": "vibe-code-static-sites-for-interactive-book-reviews",
       "title": "Vibe Code Static Sites for Interactive Book Reviews",
-      "subtitle": "",
+      "subtitle": "This very website is an example of a static site about books!",
       "tags": [],
       "pairedWithIds": [],
       "body": "",
       "assets": [
+        {
+          "label": "My Book Club Website",
+          "url": "https://www.sixtybooksayear.com/"
+        }
       ],
       "youtubeLinks": [],
       "imageUrls": [],
