@@ -1238,7 +1238,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   className="text-sm font-semibold uppercase"
                   id="reading-timer-title"
                 >
-                  Start reading right now
+                  It is most important of all to Start reading right now, then add the strategies below to improve.
                 </h3>
                 <p className="mt-1 text-sm leading-6 text-[#5f5a4f]">
                   Each square represents 5 minutes. Click a square to choose
