@@ -5,6 +5,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
   type CSSProperties,
@@ -128,6 +129,23 @@ function createBlankReadingTimerState(): ReadingTimerState {
 
 function countCharacters(value: string) {
   return value.trim().length;
+}
+
+function formatExportTimestamp(date = new Date()) {
+  const pad = (value: number) => value.toString().padStart(2, "0");
+
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+    pad(date.getSeconds()),
+  ].join("-");
+}
+
+function createExportTitle(kind: "cart" | "strategy-game") {
+  return `reading-is-a-system-${kind}-${formatExportTimestamp()}`;
 }
 
 function createStrategyGameEntries(
@@ -700,6 +718,9 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const [showStrategyGameCelebration, setShowStrategyGameCelebration] =
     useState(false);
   const [printMode, setPrintMode] = useState<PrintMode | null>(null);
+  const [clipboardMessage, setClipboardMessage] = useState<string | null>(null);
+  const printTitleRestoreRef = useRef<string | null>(null);
+  const clipboardMessageTimeoutRef = useRef<number | null>(null);
   const [, forceStrategyShuffleRender] = useState(0);
   const readingTimerState = useSyncExternalStore(
     subscribeToReadingTimerState,
@@ -924,6 +945,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     }
 
     function resetPrintMode() {
+      if (printTitleRestoreRef.current) {
+        document.title = printTitleRestoreRef.current;
+        printTitleRestoreRef.current = null;
+      }
+
       setPrintMode(null);
     }
 
@@ -933,6 +959,15 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
       window.removeEventListener("afterprint", resetPrintMode);
     };
   }, [printMode]);
+
+  useEffect(
+    () => () => {
+      if (clipboardMessageTimeoutRef.current !== null) {
+        window.clearTimeout(clipboardMessageTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const filteredStrategies = useMemo(() => {
     if (activeTags.length === 0) {
@@ -1206,6 +1241,116 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     writeStrategyGameSeenIds([...nextSeenIds]);
   }
 
+  function showClipboardStatus(message: string) {
+    setClipboardMessage(message);
+
+    if (clipboardMessageTimeoutRef.current !== null) {
+      window.clearTimeout(clipboardMessageTimeoutRef.current);
+    }
+
+    clipboardMessageTimeoutRef.current = window.setTimeout(() => {
+      setClipboardMessage(null);
+      clipboardMessageTimeoutRef.current = null;
+    }, 2600);
+  }
+
+  async function writeTextToClipboard(text: string) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+
+    textarea.value = text;
+    textarea.setAttribute("readonly", "true");
+    textarea.style.left = "0";
+    textarea.style.opacity = "0";
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const didCopy = document.execCommand("copy");
+    textarea.remove();
+
+    if (!didCopy) {
+      throw new Error("Clipboard copy failed.");
+    }
+  }
+
+  function buildStrategyGameMarkdown() {
+    return [
+      "# Strategy Game",
+      "",
+      `Generated: ${new Date().toLocaleString()}`,
+      "",
+      ...strategyGameResponses.flatMap(({ entry, strategy }, index) => [
+        `## ${index + 1}. ${strategy.title}`,
+        "",
+        strategy.subtitle,
+        "",
+        entry.response.trim(),
+        "",
+      ]),
+    ].join("\n");
+  }
+
+  function buildCartMarkdown() {
+    return [
+      "# Reading Strategy Cart",
+      "",
+      `Generated: ${new Date().toLocaleString()}`,
+      "",
+      ...cartStrategies.flatMap((strategy, index) => {
+        const checklistEntry =
+          checklistEntries[strategy.id] ?? createBlankChecklistEntry();
+
+        return [
+          `## ${index + 1}. ${strategy.title}`,
+          "",
+          strategy.subtitle,
+          "",
+          "### Where are you now?",
+          "",
+          checklistEntry.whereNow.trim() || "_No response yet._",
+          "",
+          "### Goal",
+          "",
+          checklistEntry.goal.trim() || "_No response yet._",
+          "",
+        ];
+      }),
+    ].join("\n");
+  }
+
+  async function copyStrategyGameMarkdown() {
+    if (!strategyGameCanDownload) {
+      return;
+    }
+
+    try {
+      await writeTextToClipboard(buildStrategyGameMarkdown());
+      showClipboardStatus("Strategy Game answers copied as Markdown.");
+    } catch {
+      showClipboardStatus("Could not copy answers.");
+    }
+  }
+
+  async function copyCartMarkdown() {
+    if (cartStrategies.length === 0) {
+      return;
+    }
+
+    try {
+      await writeTextToClipboard(buildCartMarkdown());
+      showClipboardStatus("Cart copied as Markdown.");
+    } catch {
+      showClipboardStatus("Could not copy cart.");
+    }
+  }
+
   function completeStrategyGameStep() {
     if (!currentStrategyGameEntry || !strategyGameCanAdvance) {
       return;
@@ -1223,19 +1368,29 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     );
   }
 
-  function printWithMode(mode: PrintMode) {
+  function printWithMode(mode: PrintMode, exportTitle: string) {
     setPrintMode(mode);
+
+    printTitleRestoreRef.current ??= document.title;
+    document.title = exportTitle;
 
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
         window.print();
-        window.setTimeout(() => setPrintMode(null), 1000);
+        window.setTimeout(() => {
+          if (printTitleRestoreRef.current) {
+            document.title = printTitleRestoreRef.current;
+            printTitleRestoreRef.current = null;
+          }
+
+          setPrintMode(null);
+        }, 1000);
       });
     });
   }
 
   function printCart() {
-    printWithMode("cart");
+    printWithMode("cart", createExportTitle("cart"));
   }
 
   function printStrategyGameResponses() {
@@ -1243,7 +1398,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
       return;
     }
 
-    printWithMode("strategyGame");
+    printWithMode("strategyGame", createExportTitle("strategy-game"));
   }
 
   function clearCart() {
@@ -1451,15 +1606,15 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         <div
           aria-label="Strategy Game"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#201f1b]/90 p-3 print:hidden sm:p-6"
+          className="fixed inset-0 z-50 bg-[#f7f5ef] print:hidden sm:flex sm:items-center sm:justify-center sm:bg-[#201f1b]/90 sm:p-6"
           onClick={closeStrategyGame}
           role="dialog"
         >
           <div
-            className="flex max-h-full w-full max-w-3xl flex-col border border-[#201f1b] bg-[#fffdf8]"
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col bg-[#fffdf8] sm:h-auto sm:max-h-full sm:max-w-3xl sm:border sm:border-[#201f1b]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-[#d8d1c1] p-4 sm:p-5">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#d8d1c1] bg-[#fffdf8] p-4 sm:static sm:p-5">
               <div>
                 <p className="text-sm font-semibold uppercase">
                   Strategy Game
@@ -1480,7 +1635,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             </div>
 
             {strategyGameComplete ? (
-              <div className="overflow-y-auto p-4 sm:p-5">
+              <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-28 sm:p-5">
                 <h2 className="text-3xl font-semibold leading-tight">
                   Good job!
                 </h2>
@@ -1510,9 +1665,17 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   ))}
                 </div>
 
-                <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+                <div className="sticky bottom-0 -mx-4 mt-6 flex flex-col gap-2 border-t border-[#d8d1c1] bg-[#fffdf8] p-4 sm:static sm:mx-0 sm:flex-row sm:border-0 sm:p-0">
                   <button
-                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f] sm:hidden"
+                    disabled={!strategyGameCanDownload}
+                    onClick={() => void copyStrategyGameMarkdown()}
+                    type="button"
+                  >
+                    Copy Markdown
+                  </button>
+                  <button
+                    className="hidden border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f] sm:inline-flex"
                     disabled={!strategyGameCanDownload}
                     onClick={printStrategyGameResponses}
                     type="button"
@@ -1542,7 +1705,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 ) : null}
               </div>
             ) : currentStrategyGameStrategy && currentStrategyGameEntry ? (
-              <div className="min-h-0 overflow-y-auto p-4 sm:p-5">
+              <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-28 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-sm font-semibold uppercase">
                     Prompt {strategyGameIndex + 1} /{" "}
@@ -1573,14 +1736,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                       </span>
                     ))}
                   </div>
-                  <h2 className="mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
+                  <h2 className="mt-4 text-xl font-semibold leading-tight sm:text-3xl">
                     {currentStrategyGameStrategy.title}
                   </h2>
-                  <p className="mt-2 leading-7 text-[#5f5a4f]">
+                  <p className="mt-2 text-sm leading-6 text-[#5f5a4f] sm:text-base sm:leading-7">
                     {currentStrategyGameStrategy.subtitle}
                   </p>
                   {currentStrategyGameStrategy.body.trim() ? (
-                    <p className="mt-4 max-h-40 overflow-y-auto border-t border-[#d8d1c1] pt-4 text-sm leading-6 text-[#333029]">
+                    <p className="mt-4 max-h-28 overflow-y-auto border-t border-[#d8d1c1] pt-4 text-sm leading-6 text-[#333029] sm:max-h-40">
                       {currentStrategyGameStrategy.body}
                     </p>
                   ) : null}
@@ -1592,7 +1755,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   </span>
                   <textarea
                     aria-describedby="strategy-game-character-count"
-                    className="mt-2 min-h-52 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b]"
+                    className="mt-2 min-h-36 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b] sm:min-h-52"
                     onChange={(event) =>
                       updateStrategyGameResponse(event.target.value)
                     }
@@ -1601,7 +1764,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   />
                 </label>
 
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t border-[#d8d1c1] bg-[#fffdf8] p-4 sm:static sm:mx-0 sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:p-0">
                   <p className="text-sm leading-6 text-[#5f5a4f]">
                     The next prompt unlocks at 140 characters.
                   </p>
@@ -1641,6 +1804,15 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             />
           ))}
         </div>
+      ) : null}
+
+      {clipboardMessage ? (
+        <p
+          aria-live="polite"
+          className="fixed inset-x-4 bottom-4 z-[70] border border-[#201f1b] bg-[#fffdf8] px-3 py-2 text-sm font-medium shadow-sm print:hidden sm:left-auto sm:right-4 sm:max-w-sm"
+        >
+          {clipboardMessage}
+        </p>
       ) : null}
 
       {strategyGameResponses.length > 0 ? (
@@ -1995,13 +2167,22 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   Start Game
                 </button>
                 {strategyGameCanDownload ? (
-                  <button
-                    className="border border-[#315d4c] px-3 py-2 text-sm font-medium text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8]"
-                    onClick={printStrategyGameResponses}
-                    type="button"
-                  >
-                    Download PDF
-                  </button>
+                  <>
+                    <button
+                      className="border border-[#315d4c] px-3 py-2 text-sm font-medium text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8] sm:hidden"
+                      onClick={() => void copyStrategyGameMarkdown()}
+                      type="button"
+                    >
+                      Copy Markdown
+                    </button>
+                    <button
+                      className="hidden border border-[#315d4c] px-3 py-2 text-sm font-medium text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8] sm:inline-flex"
+                      onClick={printStrategyGameResponses}
+                      type="button"
+                    >
+                      Download PDF
+                    </button>
+                  </>
                 ) : null}
               </div>
             </div>
@@ -2081,7 +2262,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   {cartExpanded ? "Hide checklist" : "Edit checklist"}
                 </button>
                 <button
-                  className="border border-[#201f1b] px-2 py-2 text-xs font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:px-3 sm:py-1.5 sm:text-sm"
+                  className="border border-[#201f1b] px-2 py-2 text-xs font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:hidden"
+                  onClick={() => void copyCartMarkdown()}
+                  type="button"
+                >
+                  Copy
+                </button>
+                <button
+                  className="hidden border border-[#201f1b] px-2 py-2 text-xs font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:inline-flex sm:px-3 sm:py-1.5 sm:text-sm"
                   onClick={printCart}
                   type="button"
                 >
