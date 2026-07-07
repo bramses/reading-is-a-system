@@ -500,9 +500,13 @@
       "pairedWithIds": [],
       "body": "",
       "assets": [
+        {
+          "label": "Anki + Readwise Integration",
+          "url": "https://github.com/bramses/remember-your-library"
+        }
       ],
       "youtubeLinks": [],
-      "imageUrls": [],
+      "imageUrls": ["https://storage.ghost.io/c/0c/cc/0ccc9a8d-054a-4056-b11e-e1bfbbb66387/content/images/2026/07/Screenshot-2026-07-07-09-35-40.png", "https://storage.ghost.io/c/0c/cc/0ccc9a8d-054a-4056-b11e-e1bfbbb66387/content/images/2026/07/Screenshot-2026-07-07-at-9.37.52---AM.png", "https://storage.ghost.io/c/0c/cc/0ccc9a8d-054a-4056-b11e-e1bfbbb66387/content/images/2026/07/Screenshot-2026-07-07-09-36-12.png"],
       "audioFileUrls": []
     },
     {
