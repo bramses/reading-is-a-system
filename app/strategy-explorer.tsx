@@ -10,6 +10,7 @@ import {
   useSyncExternalStore,
   type CSSProperties,
 } from "react";
+import Link from "next/link";
 
 import type { SiteData, Strategy } from "./site-types";
 
@@ -26,6 +27,11 @@ type PrintMode = "cart" | "strategyGame";
 type StrategyGameEntry = {
   strategyId: string;
   response: string;
+};
+
+type StrategyGameState = {
+  entries: StrategyGameEntry[];
+  index: number;
 };
 
 type CartState = {
@@ -46,6 +52,7 @@ type ReadingTimerState = {
 
 const CART_STORAGE_KEY = "reading-is-a-system-cart";
 const READING_TIMER_STORAGE_KEY = "reading-is-a-system-reading-timer";
+const STRATEGY_GAME_STORAGE_KEY = "reading-is-a-system-strategy-game";
 const STRATEGY_GAME_SEEN_STORAGE_KEY =
   "reading-is-a-system-strategy-game-seen";
 const KINDLE_APP_DEEP_LINK = "kindle://";
@@ -76,12 +83,18 @@ const BLANK_READING_TIMER_STATE: ReadingTimerState = {
   selectedThroughIndex: null,
   activeTimer: null,
 };
+const BLANK_STRATEGY_GAME_STATE: StrategyGameState = {
+  entries: [],
+  index: 0,
+};
 const BLANK_STRATEGY_GAME_SEEN_IDS: string[] = [];
 
 let cartStateCache: CartState | null = null;
 const cartStateListeners = new Set<() => void>();
 let readingTimerStateCache: ReadingTimerState | null = null;
 const readingTimerStateListeners = new Set<() => void>();
+let strategyGameStateCache: StrategyGameState | null = null;
+const strategyGameStateListeners = new Set<() => void>();
 let strategyGameSeenIdsCache: string[] | null = null;
 const strategyGameSeenIdsListeners = new Set<() => void>();
 const shuffledStrategiesBySource = new WeakMap<readonly Strategy[], Strategy[]>();
@@ -124,6 +137,13 @@ function createBlankReadingTimerState(): ReadingTimerState {
     completedCount: 0,
     selectedThroughIndex: null,
     activeTimer: null,
+  };
+}
+
+function createBlankStrategyGameState(): StrategyGameState {
+  return {
+    entries: [],
+    index: 0,
   };
 }
 
@@ -231,6 +251,10 @@ function getServerCartSnapshot() {
 
 function getServerReadingTimerSnapshot() {
   return BLANK_READING_TIMER_STATE;
+}
+
+function getServerStrategyGameSnapshot() {
+  return BLANK_STRATEGY_GAME_STATE;
 }
 
 function getServerStrategyGameSeenIdsSnapshot() {
@@ -379,6 +403,53 @@ function getClientReadingTimerSnapshot() {
   return readingTimerStateCache;
 }
 
+function readStoredStrategyGameState(
+  strategyById: Map<string, Strategy>,
+): StrategyGameState {
+  if (typeof window === "undefined") {
+    return createBlankStrategyGameState();
+  }
+
+  try {
+    const storedGame = window.sessionStorage.getItem(
+      STRATEGY_GAME_STORAGE_KEY,
+    );
+
+    if (!storedGame) {
+      return createBlankStrategyGameState();
+    }
+
+    const parsedGame = JSON.parse(storedGame) as Partial<StrategyGameState>;
+    const entries = Array.isArray(parsedGame.entries)
+      ? parsedGame.entries
+          .map((entry) => ({
+            response:
+              typeof entry?.response === "string" ? entry.response : "",
+            strategyId:
+              typeof entry?.strategyId === "string" ? entry.strategyId : "",
+          }))
+          .filter((entry) => strategyById.has(entry.strategyId))
+      : [];
+
+    return {
+      entries,
+      index: clampNumber(
+        Math.floor(Number(parsedGame.index) || 0),
+        0,
+        entries.length,
+      ),
+    };
+  } catch {
+    return createBlankStrategyGameState();
+  }
+}
+
+function getClientStrategyGameSnapshot(strategyById: Map<string, Strategy>) {
+  strategyGameStateCache ??= readStoredStrategyGameState(strategyById);
+
+  return strategyGameStateCache;
+}
+
 function getClientStrategyGameSeenIdsSnapshot(
   strategyById: Map<string, Strategy>,
 ) {
@@ -400,6 +471,14 @@ function subscribeToReadingTimerState(listener: () => void) {
 
   return () => {
     readingTimerStateListeners.delete(listener);
+  };
+}
+
+function subscribeToStrategyGameState(listener: () => void) {
+  strategyGameStateListeners.add(listener);
+
+  return () => {
+    strategyGameStateListeners.delete(listener);
   };
 }
 
@@ -436,6 +515,19 @@ function writeReadingTimerState(timerState: ReadingTimerState) {
   }
 
   readingTimerStateListeners.forEach((listener) => listener());
+}
+
+function writeStrategyGameState(gameState: StrategyGameState) {
+  strategyGameStateCache = gameState;
+
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(
+      STRATEGY_GAME_STORAGE_KEY,
+      JSON.stringify(gameState),
+    );
+  }
+
+  strategyGameStateListeners.forEach((listener) => listener());
 }
 
 function writeStrategyGameSeenIds(strategyIds: string[]) {
@@ -648,6 +740,24 @@ function CloseIcon() {
   );
 }
 
+function ArrowLeftIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-5 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="m12 19-7-7 7-7" />
+      <path d="M19 12H5" />
+    </svg>
+  );
+}
+
 function CoffeeIcon() {
   return (
     <svg
@@ -711,10 +821,6 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const [currentTimeMs, setCurrentTimeMs] = useState(() => Date.now());
   const [kindleMenuOpen, setKindleMenuOpen] = useState(false);
   const [strategyGameOpen, setStrategyGameOpen] = useState(false);
-  const [strategyGameEntries, setStrategyGameEntries] = useState<
-    StrategyGameEntry[]
-  >([]);
-  const [strategyGameIndex, setStrategyGameIndex] = useState(0);
   const [showStrategyGameCelebration, setShowStrategyGameCelebration] =
     useState(false);
   const [printMode, setPrintMode] = useState<PrintMode | null>(null);
@@ -726,6 +832,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     subscribeToReadingTimerState,
     getClientReadingTimerSnapshot,
     getServerReadingTimerSnapshot,
+  );
+  const strategyGameState = useSyncExternalStore(
+    subscribeToStrategyGameState,
+    () => getClientStrategyGameSnapshot(strategyById),
+    getServerStrategyGameSnapshot,
   );
   const strategyGameSeenIds = useSyncExternalStore(
     subscribeToStrategyGameSeenIds,
@@ -744,6 +855,8 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   );
   const cartStrategyIds = cartState.strategyIds;
   const checklistEntries = cartState.checklistEntries;
+  const strategyGameEntries = strategyGameState.entries;
+  const strategyGameIndex = strategyGameState.index;
 
   const cartStrategies = useMemo(
     () =>
@@ -813,6 +926,8 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const strategyGameComplete =
     strategyGameEntries.length > 0 &&
     strategyGameIndex >= strategyGameEntries.length;
+  const strategyGameInProgress =
+    strategyGameEntries.length > 0 && !strategyGameComplete;
   const currentStrategyGameEntry = strategyGameComplete
     ? null
     : strategyGameEntries[strategyGameIndex];
@@ -1199,7 +1314,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     });
   }
 
-  function startStrategyGame() {
+  function startStrategyGame(openInModal = true) {
     if (!strategyGameCanStart) {
       return;
     }
@@ -1213,9 +1328,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
       return;
     }
 
-    setStrategyGameEntries(nextEntries);
-    setStrategyGameIndex(0);
-    setStrategyGameOpen(true);
+    writeStrategyGameState({
+      entries: nextEntries,
+      index: 0,
+    });
+    setStrategyGameOpen(openInModal);
     setShowStrategyGameCelebration(false);
   }
 
@@ -1224,11 +1341,12 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   }
 
   function updateStrategyGameResponse(value: string) {
-    setStrategyGameEntries((currentEntries) =>
-      currentEntries.map((entry, index) =>
+    writeStrategyGameState({
+      ...strategyGameState,
+      entries: strategyGameEntries.map((entry, index) =>
         index === strategyGameIndex ? { ...entry, response: value } : entry,
       ),
-    );
+    });
   }
 
   function markCompletedStrategyGameEntriesSeen() {
@@ -1358,14 +1476,18 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
 
     if (strategyGameIndex >= strategyGameEntries.length - 1) {
       markCompletedStrategyGameEntriesSeen();
-      setStrategyGameIndex(strategyGameEntries.length);
+      writeStrategyGameState({
+        ...strategyGameState,
+        index: strategyGameEntries.length,
+      });
       setShowStrategyGameCelebration(true);
       return;
     }
 
-    setStrategyGameIndex((currentIndex) =>
-      Math.min(currentIndex + 1, strategyGameEntries.length),
-    );
+    writeStrategyGameState({
+      ...strategyGameState,
+      index: Math.min(strategyGameIndex + 1, strategyGameEntries.length),
+    });
   }
 
   function printWithMode(mode: PrintMode, exportTitle: string) {
@@ -1685,7 +1807,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   <button
                     className="border border-[#315d4c] px-3 py-2 text-sm font-medium text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
                     disabled={!strategyGameCanStart}
-                    onClick={startStrategyGame}
+                    onClick={() => startStrategyGame()}
                     type="button"
                   >
                     Play again
@@ -2158,13 +2280,41 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
+                {strategyGameCanStart || strategyGameInProgress ? (
+                  <Link
+                    className="border border-[#201f1b] px-3 py-2 text-center text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:hidden"
+                    href="/strategy-game"
+                    onClick={() => {
+                      if (!strategyGameInProgress) {
+                        startStrategyGame(false);
+                      }
+                    }}
+                  >
+                    {strategyGameInProgress ? "Open Game" : "Start Game"}
+                  </Link>
+                ) : (
+                  <button
+                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] sm:hidden"
+                    disabled
+                    type="button"
+                  >
+                    Start Game
+                  </button>
+                )}
                 <button
-                  className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
-                  disabled={!strategyGameCanStart}
-                  onClick={startStrategyGame}
+                  className="hidden border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f] sm:inline-flex"
+                  disabled={!strategyGameCanStart && !strategyGameInProgress}
+                  onClick={() => {
+                    if (strategyGameInProgress) {
+                      setStrategyGameOpen(true);
+                      return;
+                    }
+
+                    startStrategyGame();
+                  }}
                   type="button"
                 >
-                  Start Game
+                  {strategyGameInProgress ? "Open Game" : "Start Game"}
                 </button>
                 {strategyGameCanDownload ? (
                   <>
@@ -2254,8 +2404,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               </div>
 
               <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto print:hidden">
+                <Link
+                  className="border border-[#c8c0ae] px-2 py-2 text-center text-xs font-medium hover:border-[#201f1b] sm:hidden"
+                  href="/checklist"
+                >
+                  Edit
+                </Link>
                 <button
-                  className="border border-[#c8c0ae] px-2 py-2 text-xs font-medium hover:border-[#201f1b] sm:px-3 sm:py-1.5 sm:text-sm"
+                  className="hidden border border-[#c8c0ae] px-2 py-2 text-xs font-medium hover:border-[#201f1b] sm:inline-flex sm:px-3 sm:py-1.5 sm:text-sm"
                   onClick={() => setCartExpanded((expanded) => !expanded)}
                   type="button"
                 >
@@ -2556,6 +2712,670 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
           </p>
         ) : null}
       </div>
+    </main>
+  );
+}
+
+export function StrategyGamePage({ site }: StrategyExplorerProps) {
+  const strategyById = useMemo(
+    () =>
+      new Map(
+        site.strategies.map((strategy) => [strategy.id, strategy] as const),
+      ),
+    [site.strategies],
+  );
+  const strategyGameState = useSyncExternalStore(
+    subscribeToStrategyGameState,
+    () => getClientStrategyGameSnapshot(strategyById),
+    getServerStrategyGameSnapshot,
+  );
+  const strategyGameSeenIds = useSyncExternalStore(
+    subscribeToStrategyGameSeenIds,
+    () => getClientStrategyGameSeenIdsSnapshot(strategyById),
+    getServerStrategyGameSeenIdsSnapshot,
+  );
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [clipboardMessage, setClipboardMessage] = useState<string | null>(null);
+  const clipboardMessageTimeoutRef = useRef<number | null>(null);
+  const strategyGameEntries = strategyGameState.entries;
+  const strategyGameIndex = strategyGameState.index;
+  const strategyGameSeenCount = strategyGameSeenIds.length;
+  const strategyGameRemainingCount = Math.max(
+    0,
+    site.strategies.length - strategyGameSeenCount,
+  );
+  const strategyGameCanStart = strategyGameRemainingCount > 0;
+  const strategyGameComplete =
+    strategyGameEntries.length > 0 &&
+    strategyGameIndex >= strategyGameEntries.length;
+  const currentStrategyGameEntry = strategyGameComplete
+    ? null
+    : strategyGameEntries[strategyGameIndex];
+  const currentStrategyGameStrategy = currentStrategyGameEntry
+    ? strategyById.get(currentStrategyGameEntry.strategyId) ?? null
+    : null;
+  const currentStrategyGameCharacterCount = countCharacters(
+    currentStrategyGameEntry?.response ?? "",
+  );
+  const strategyGameCanAdvance =
+    currentStrategyGameCharacterCount >= STRATEGY_GAME_CHARACTER_GOAL;
+  const strategyGameCanCopy =
+    strategyGameComplete &&
+    strategyGameEntries.length > 0 &&
+    strategyGameEntries.every(
+      (entry) => countCharacters(entry.response) >= STRATEGY_GAME_CHARACTER_GOAL,
+    );
+  const strategyGameResponses = useMemo(
+    () =>
+      strategyGameEntries
+        .map((entry) => ({
+          entry,
+          strategy: strategyById.get(entry.strategyId),
+        }))
+        .filter(
+          (
+            item,
+          ): item is { entry: StrategyGameEntry; strategy: Strategy } =>
+            Boolean(item.strategy),
+        ),
+    [strategyGameEntries, strategyById],
+  );
+
+  useEffect(() => {
+    if (!showCelebration) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShowCelebration(false);
+    }, 3200);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [showCelebration]);
+
+  useEffect(
+    () => () => {
+      if (clipboardMessageTimeoutRef.current !== null) {
+        window.clearTimeout(clipboardMessageTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  function showClipboardStatus(message: string) {
+    setClipboardMessage(message);
+
+    if (clipboardMessageTimeoutRef.current !== null) {
+      window.clearTimeout(clipboardMessageTimeoutRef.current);
+    }
+
+    clipboardMessageTimeoutRef.current = window.setTimeout(() => {
+      setClipboardMessage(null);
+      clipboardMessageTimeoutRef.current = null;
+    }, 2600);
+  }
+
+  async function writeTextToClipboard(text: string) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+
+    textarea.value = text;
+    textarea.setAttribute("readonly", "true");
+    textarea.style.left = "0";
+    textarea.style.opacity = "0";
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const didCopy = document.execCommand("copy");
+    textarea.remove();
+
+    if (!didCopy) {
+      throw new Error("Clipboard copy failed.");
+    }
+  }
+
+  function buildStrategyGameMarkdown() {
+    return [
+      "# Strategy Game",
+      "",
+      `Generated: ${new Date().toLocaleString()}`,
+      "",
+      ...strategyGameResponses.flatMap(({ entry, strategy }, index) => [
+        `## ${index + 1}. ${strategy.title}`,
+        "",
+        strategy.subtitle,
+        "",
+        entry.response.trim(),
+        "",
+      ]),
+    ].join("\n");
+  }
+
+  async function copyStrategyGameMarkdown() {
+    if (!strategyGameCanCopy) {
+      return;
+    }
+
+    try {
+      await writeTextToClipboard(buildStrategyGameMarkdown());
+      showClipboardStatus("Strategy Game answers copied as Markdown.");
+    } catch {
+      showClipboardStatus("Could not copy answers.");
+    }
+  }
+
+  function startStrategyGame() {
+    if (!strategyGameCanStart) {
+      return;
+    }
+
+    const nextEntries = createStrategyGameEntries(
+      site.strategies,
+      strategyGameSeenIds,
+    );
+
+    if (nextEntries.length === 0) {
+      return;
+    }
+
+    writeStrategyGameState({
+      entries: nextEntries,
+      index: 0,
+    });
+    setShowCelebration(false);
+  }
+
+  function updateStrategyGameResponse(value: string) {
+    writeStrategyGameState({
+      ...strategyGameState,
+      entries: strategyGameEntries.map((entry, index) =>
+        index === strategyGameIndex ? { ...entry, response: value } : entry,
+      ),
+    });
+  }
+
+  function markCompletedStrategyGameEntriesSeen() {
+    const nextSeenIds = new Set(strategyGameSeenIds);
+
+    strategyGameEntries.forEach((entry) => {
+      nextSeenIds.add(entry.strategyId);
+    });
+
+    writeStrategyGameSeenIds([...nextSeenIds]);
+  }
+
+  function completeStrategyGameStep() {
+    if (!currentStrategyGameEntry || !strategyGameCanAdvance) {
+      return;
+    }
+
+    if (strategyGameIndex >= strategyGameEntries.length - 1) {
+      markCompletedStrategyGameEntriesSeen();
+      writeStrategyGameState({
+        ...strategyGameState,
+        index: strategyGameEntries.length,
+      });
+      setShowCelebration(true);
+      return;
+    }
+
+    writeStrategyGameState({
+      ...strategyGameState,
+      index: Math.min(strategyGameIndex + 1, strategyGameEntries.length),
+    });
+  }
+
+  return (
+    <main className="min-h-screen bg-[#f7f5ef] text-[#201f1b]">
+      <header className="sticky top-0 z-20 border-b border-[#d8d1c1] bg-[#fffdf8]">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
+          <Link
+            aria-label="Back to main page"
+            className="inline-flex size-11 items-center justify-center border border-[#201f1b] hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+            href="/"
+          >
+            <ArrowLeftIcon />
+          </Link>
+          <div>
+            <h1 className="text-sm font-semibold uppercase">Strategy Game</h1>
+            <p className="text-sm text-[#5f5a4f]">
+              {strategyGameRemainingCount} of {site.strategies.length}{" "}
+              strategies left this session.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {showCelebration ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-30 overflow-hidden"
+        >
+          {Array.from({ length: 44 }).map((_, index) => (
+            <span
+              className="absolute top-[-1rem] h-3 w-1.5 animate-[strategy-game-confetti_1.8s_ease-out_forwards]"
+              key={index}
+              style={strategyGameConfettiStyle(index)}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {clipboardMessage ? (
+        <p
+          aria-live="polite"
+          className="fixed inset-x-4 bottom-4 z-40 border border-[#201f1b] bg-[#fffdf8] px-3 py-2 text-sm font-medium shadow-sm"
+        >
+          {clipboardMessage}
+        </p>
+      ) : null}
+
+      <div className="mx-auto max-w-3xl px-4 py-5">
+        {strategyGameComplete ? (
+          <section>
+            <h2 className="text-4xl font-semibold leading-tight">Good job!</h2>
+            <p className="mt-2 leading-7 text-[#5f5a4f]">
+              You completed {strategyGameEntries.length} strategy responses.
+            </p>
+
+            <div className="mt-5 grid gap-3">
+              {strategyGameResponses.map(({ entry, strategy }, index) => (
+                <article
+                  className="border border-[#d8d1c1] bg-white p-3"
+                  key={`${entry.strategyId}-${index}`}
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="font-semibold leading-tight">
+                      {strategy.title}
+                    </h3>
+                    <p className="text-sm text-[#5f5a4f]">
+                      {countCharacters(entry.response)} characters
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-[#5f5a4f]">
+                    {entry.response}
+                  </p>
+                </article>
+              ))}
+            </div>
+
+            <div className="sticky bottom-0 -mx-4 mt-6 grid gap-2 border-t border-[#d8d1c1] bg-[#fffdf8] p-4">
+              <button
+                className="border border-[#201f1b] px-3 py-3 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                disabled={!strategyGameCanCopy}
+                onClick={() => void copyStrategyGameMarkdown()}
+                type="button"
+              >
+                Copy Markdown
+              </button>
+              <button
+                className="border border-[#315d4c] px-3 py-3 text-sm font-medium text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                disabled={!strategyGameCanStart}
+                onClick={startStrategyGame}
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </section>
+        ) : currentStrategyGameStrategy && currentStrategyGameEntry ? (
+          <section>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-semibold uppercase">
+                Prompt {strategyGameIndex + 1} / {strategyGameEntries.length}
+              </p>
+              <p
+                aria-live="polite"
+                className={`text-sm font-semibold ${
+                  strategyGameCanAdvance ? "text-[#315d4c]" : "text-[#5f5a4f]"
+                }`}
+                id="strategy-game-page-character-count"
+              >
+                {currentStrategyGameCharacterCount} /{" "}
+                {STRATEGY_GAME_CHARACTER_GOAL} characters
+              </p>
+            </div>
+
+            <article className="mt-4 border border-[#d8d1c1] bg-white p-4">
+              <div className="flex flex-wrap gap-2">
+                {currentStrategyGameStrategy.tags.map((tag) => (
+                  <span
+                    className="border border-[#d8d1c1] px-2 py-1 text-xs text-[#5f5a4f]"
+                    key={tag}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <h2 className="mt-4 text-2xl font-semibold leading-tight">
+                {currentStrategyGameStrategy.title}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-[#5f5a4f]">
+                {currentStrategyGameStrategy.subtitle}
+              </p>
+              {currentStrategyGameStrategy.body.trim() ? (
+                <p className="mt-4 border-t border-[#d8d1c1] pt-4 text-sm leading-6 text-[#333029]">
+                  {currentStrategyGameStrategy.body}
+                </p>
+              ) : null}
+            </article>
+
+            <label className="mt-5 block">
+              <span className="text-sm font-semibold uppercase">
+                Your plan or thoughts
+              </span>
+              <textarea
+                aria-describedby="strategy-game-page-character-count"
+                className="mt-2 min-h-44 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b]"
+                onChange={(event) =>
+                  updateStrategyGameResponse(event.target.value)
+                }
+                placeholder="Write how you will implement this strategy, or what you think about it."
+                value={currentStrategyGameEntry.response}
+              />
+            </label>
+
+            <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t border-[#d8d1c1] bg-[#fffdf8] p-4">
+              <p className="text-sm leading-6 text-[#5f5a4f]">
+                The next prompt unlocks at 140 characters.
+              </p>
+              <button
+                className="border border-[#201f1b] px-3 py-3 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                disabled={!strategyGameCanAdvance}
+                onClick={completeStrategyGameStep}
+                type="button"
+              >
+                {strategyGameIndex >= strategyGameEntries.length - 1
+                  ? "Finish game"
+                  : "Next strategy"}
+              </button>
+            </div>
+          </section>
+        ) : (
+          <section className="border border-[#d8d1c1] bg-[#fffdf8] p-4">
+            <h2 className="text-2xl font-semibold leading-tight">
+              Strategy Game
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#5f5a4f]">
+              Get up to three random strategies you haven&apos;t seen this
+              session and write 140 characters about each one.
+            </p>
+            <button
+              className="mt-5 w-full border border-[#201f1b] px-3 py-3 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+              disabled={!strategyGameCanStart}
+              onClick={startStrategyGame}
+              type="button"
+            >
+              Start Game
+            </button>
+            {!strategyGameCanStart ? (
+              <p className="mt-4 text-sm leading-6 text-[#5f5a4f]">
+                No unseen strategies remain in this browser session.
+              </p>
+            ) : null}
+          </section>
+        )}
+      </div>
+    </main>
+  );
+}
+
+export function ChecklistPage({ site }: StrategyExplorerProps) {
+  const strategyById = useMemo(
+    () =>
+      new Map(
+        site.strategies.map((strategy) => [strategy.id, strategy] as const),
+      ),
+    [site.strategies],
+  );
+  const cartState = useSyncExternalStore(
+    subscribeToCartState,
+    () => getClientCartSnapshot(strategyById),
+    getServerCartSnapshot,
+  );
+  const [clipboardMessage, setClipboardMessage] = useState<string | null>(null);
+  const clipboardMessageTimeoutRef = useRef<number | null>(null);
+  const cartStrategies = useMemo(
+    () =>
+      cartState.strategyIds
+        .map((strategyId) => strategyById.get(strategyId))
+        .filter((strategy): strategy is Strategy => Boolean(strategy)),
+    [cartState.strategyIds, strategyById],
+  );
+
+  useEffect(
+    () => () => {
+      if (clipboardMessageTimeoutRef.current !== null) {
+        window.clearTimeout(clipboardMessageTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  function showClipboardStatus(message: string) {
+    setClipboardMessage(message);
+
+    if (clipboardMessageTimeoutRef.current !== null) {
+      window.clearTimeout(clipboardMessageTimeoutRef.current);
+    }
+
+    clipboardMessageTimeoutRef.current = window.setTimeout(() => {
+      setClipboardMessage(null);
+      clipboardMessageTimeoutRef.current = null;
+    }, 2600);
+  }
+
+  async function writeTextToClipboard(text: string) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+
+    textarea.value = text;
+    textarea.setAttribute("readonly", "true");
+    textarea.style.left = "0";
+    textarea.style.opacity = "0";
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const didCopy = document.execCommand("copy");
+    textarea.remove();
+
+    if (!didCopy) {
+      throw new Error("Clipboard copy failed.");
+    }
+  }
+
+  function buildCartMarkdown() {
+    return [
+      "# Reading Strategy Cart",
+      "",
+      `Generated: ${new Date().toLocaleString()}`,
+      "",
+      ...cartStrategies.flatMap((strategy, index) => {
+        const checklistEntry =
+          cartState.checklistEntries[strategy.id] ?? createBlankChecklistEntry();
+
+        return [
+          `## ${index + 1}. ${strategy.title}`,
+          "",
+          strategy.subtitle,
+          "",
+          "### Where are you now?",
+          "",
+          checklistEntry.whereNow.trim() || "_No response yet._",
+          "",
+          "### Goal",
+          "",
+          checklistEntry.goal.trim() || "_No response yet._",
+          "",
+        ];
+      }),
+    ].join("\n");
+  }
+
+  async function copyCartMarkdown() {
+    if (cartStrategies.length === 0) {
+      return;
+    }
+
+    try {
+      await writeTextToClipboard(buildCartMarkdown());
+      showClipboardStatus("Cart copied as Markdown.");
+    } catch {
+      showClipboardStatus("Could not copy cart.");
+    }
+  }
+
+  function updateChecklistEntry(
+    strategyId: string,
+    field: ChecklistField,
+    value: string,
+  ) {
+    writeCartState({
+      ...cartState,
+      checklistEntries: {
+        ...cartState.checklistEntries,
+        [strategyId]: {
+          ...(cartState.checklistEntries[strategyId] ??
+            createBlankChecklistEntry()),
+          [field]: value,
+        },
+      },
+    });
+  }
+
+  function removeStrategyFromCart(strategyId: string) {
+    writeCartState({
+      ...cartState,
+      strategyIds: cartState.strategyIds.filter(
+        (currentId) => currentId !== strategyId,
+      ),
+    });
+  }
+
+  return (
+    <main className="min-h-screen bg-[#f7f5ef] text-[#201f1b]">
+      <header className="sticky top-0 z-20 border-b border-[#d8d1c1] bg-[#fffdf8]">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
+          <Link
+            aria-label="Back to main page"
+            className="inline-flex size-11 items-center justify-center border border-[#201f1b] hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+            href="/"
+          >
+            <ArrowLeftIcon />
+          </Link>
+          <div>
+            <h1 className="text-sm font-semibold uppercase">Checklist</h1>
+            <p className="text-sm text-[#5f5a4f]">
+              {cartStrategies.length} selected
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {clipboardMessage ? (
+        <p
+          aria-live="polite"
+          className="fixed inset-x-4 bottom-4 z-40 border border-[#201f1b] bg-[#fffdf8] px-3 py-2 text-sm font-medium shadow-sm"
+        >
+          {clipboardMessage}
+        </p>
+      ) : null}
+
+      <div className="mx-auto max-w-3xl px-4 py-5">
+        {cartStrategies.length === 0 ? (
+          <section className="border border-[#d8d1c1] bg-[#fffdf8] p-4">
+            <h2 className="text-2xl font-semibold leading-tight">
+              No strategies selected
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#5f5a4f]">
+              Add strategies from the main page, then come back here to fill in
+              your checklist.
+            </p>
+          </section>
+        ) : (
+          <section className="grid gap-4 pb-28">
+            {cartStrategies.map((strategy) => {
+              const checklistEntry =
+                cartState.checklistEntries[strategy.id] ??
+                createBlankChecklistEntry();
+
+              return (
+                <article
+                  className="border border-[#d8d1c1] bg-[#fffdf8] p-4"
+                  key={strategy.id}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="text-xl font-semibold leading-tight">
+                        {strategy.title}
+                      </h2>
+                      <p className="mt-1 text-sm leading-6 text-[#5f5a4f]">
+                        {strategy.subtitle}
+                      </p>
+                    </div>
+                    <button
+                      className="shrink-0 border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                      onClick={() => removeStrategyFromCart(strategy.id)}
+                      type="button"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="mt-4 grid gap-4">
+                    {CHECKLIST_FIELDS.map((field) => (
+                      <label className="block" key={field.id}>
+                        <span className="text-sm font-semibold uppercase">
+                          {field.label}
+                        </span>
+                        <textarea
+                          className="mt-2 min-h-36 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b]"
+                          onChange={(event) =>
+                            updateChecklistEntry(
+                              strategy.id,
+                              field.id,
+                              event.target.value,
+                            )
+                          }
+                          value={checklistEntry[field.id]}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        )}
+      </div>
+
+      {cartStrategies.length > 0 ? (
+        <div className="fixed inset-x-0 bottom-0 border-t border-[#d8d1c1] bg-[#fffdf8] p-4">
+          <button
+            className="w-full border border-[#201f1b] px-3 py-3 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+            onClick={() => void copyCartMarkdown()}
+            type="button"
+          >
+            Copy Markdown
+          </button>
+        </div>
+      ) : null}
     </main>
   );
 }
