@@ -16,6 +16,18 @@ body {
   color: var(--foreground);
 }
 
+@keyframes strategy-game-confetti {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, -2rem, 0) rotate(0deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--confetti-shift), 110vh, 0) rotate(540deg);
+  }
+}
+
 @media print {
   @page {
     size: letter;
@@ -81,5 +93,56 @@ body {
     padding: 0.18in !important;
     font-size: 14pt !important;
     line-height: 1.4 !important;
+  }
+
+  .print-strategy-game {
+    color: #201f1b;
+  }
+
+  .print-strategy-game h1 {
+    margin: 0;
+    font-size: 28pt;
+    line-height: 1.1;
+  }
+
+  .print-strategy-game > p {
+    margin: 0.12in 0 0;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+
+  .print-strategy-game-entry {
+    margin-top: 0.28in;
+    padding: 0.22in;
+    border: 2px solid #201f1b;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-strategy-game-kicker {
+    margin: 0;
+    font-size: 10pt;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .print-strategy-game-entry h2 {
+    margin: 0.08in 0 0;
+    font-size: 18pt;
+    line-height: 1.2;
+  }
+
+  .print-strategy-game-subtitle {
+    margin: 0.08in 0 0;
+    font-size: 11pt;
+    line-height: 1.35;
+  }
+
+  .print-strategy-game-response {
+    margin: 0.16in 0 0;
+    white-space: pre-wrap;
+    font-size: 12pt;
+    line-height: 1.45;
   }
 }
