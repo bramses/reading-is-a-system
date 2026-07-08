@@ -97,6 +97,10 @@ function normalizeSiteData(value: unknown): SiteData {
       site.starterPackStrategyIds,
       "starterPackStrategyIds",
     ),
+    readingJournalYoutubeUrls: readStringArray(
+      site.readingJournalYoutubeUrls,
+      "readingJournalYoutubeUrls",
+    ),
     strategies: site.strategies.map(readStrategy),
   };
 }

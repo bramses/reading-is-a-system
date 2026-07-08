@@ -29,5 +29,6 @@ export type SiteData = {
   };
   tags: string[];
   starterPackStrategyIds: string[];
+  readingJournalYoutubeUrls: string[];
   strategies: Strategy[];
 };

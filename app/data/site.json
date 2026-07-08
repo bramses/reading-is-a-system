@@ -24,6 +24,10 @@
     "question-based-reading",
     "commonplace-book"
   ],
+  "readingJournalYoutubeUrls": [
+    "https://www.youtube.com/watch?v=JMBV12cFbfw",
+    "https://youtu.be/jIgqL9vYHr8?si=cu1-kiVFUpmuxuJv"
+  ],
   "strategies": [
     {
       "id": "parallel-reading",

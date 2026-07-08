@@ -170,6 +170,13 @@ function PageLinksEditor({ site }: { site: SiteData }) {
         required={false}
         rows={4}
       />
+      <TextAreaField
+        defaultValue={listText(site.readingJournalYoutubeUrls)}
+        label="Reading journal YouTube URLs"
+        name="readingJournalYoutubeUrls"
+        required={false}
+        rows={5}
+      />
     </section>
   );
 }

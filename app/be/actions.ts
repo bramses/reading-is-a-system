@@ -139,6 +139,9 @@ function formDataToSiteData(formData: FormData): SiteData {
     starterPackStrategyIds: listFromText(
       blockValue(formData, "starterPackStrategyIds"),
     ),
+    readingJournalYoutubeUrls: listFromText(
+      blockValue(formData, "readingJournalYoutubeUrls"),
+    ),
     strategies: [],
   };
 

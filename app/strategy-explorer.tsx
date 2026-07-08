@@ -682,6 +682,24 @@ function SlidesIcon() {
   );
 }
 
+function VideoIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M4 7h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4z" />
+      <path d="m17 10 4-2v8l-4-2" />
+    </svg>
+  );
+}
+
 function CalendarIcon() {
   return (
     <svg
@@ -2006,6 +2024,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               <GitHubIcon />
               Star on GitHub
             </a>
+            <Link
+              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              href="/reading-journal"
+            >
+              <VideoIcon />
+              Bram&apos;s Reading Journal
+            </Link>
             <details className="group relative w-full sm:w-auto">
               <summary className="inline-flex w-full cursor-pointer list-none items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto [&::-webkit-details-marker]:hidden">
                 <CalendarIcon />
@@ -2066,7 +2091,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   className="text-sm font-semibold uppercase"
                   id="reading-timer-title"
                 >
-                  It is most important of all to Start reading right now, then add the strategies below to improve.
+                  Start Reading Right Now
                 </h3>
                 <p className="mt-1 text-sm leading-6 text-[#5f5a4f]">
                   Each square represents 5 minutes. Click a square to choose
@@ -2267,16 +2292,10 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   className="text-sm font-semibold uppercase"
                   id="strategy-game-title"
                 >
-                  Strategy Game
+                  Tweet @ Your Books
                 </h2>
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-[#5f5a4f]">
-                  Get up to three random strategies you haven&apos;t seen this
-                  session and write 140 characters about your plan to
-                  implement each one, or your thoughts about it.
-                </p>
-                <p className="mt-2 text-sm font-medium text-[#315d4c]">
-                  {strategyGameRemainingCount} of {site.strategies.length}{" "}
-                  strategies left this session.
+                  
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
