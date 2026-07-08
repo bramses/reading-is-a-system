@@ -109,23 +109,23 @@ export default function ReadingJournalViewer({
 
   if (videos.length === 0) {
     return (
-      <main className="min-h-screen bg-[#201f1b] text-[#f7f5ef]">
-        <header className="border-b border-[#f7f5ef]/20 bg-[#201f1b]">
+      <main className="min-h-screen bg-[#22201b] text-[#f2ede1]">
+        <header className="border-b-2 border-[#f2ede1] bg-[#22201b]">
           <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
             <Link
               aria-label="Back to main page"
-              className="inline-flex size-11 items-center justify-center border border-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+              className="riso-button riso-button-dark size-11 p-0"
               href="/"
             >
               <ArrowLeftIcon />
             </Link>
-            <h1 className="text-sm font-semibold uppercase">
+            <h1 className="riso-mono text-sm font-semibold uppercase">
               Bram&apos;s Reading Journal
             </h1>
           </div>
         </header>
         <section className="mx-auto max-w-4xl px-4 py-8">
-          <p className="border border-[#f7f5ef]/20 p-4 text-sm leading-6">
+          <p className="border-2 border-[#f2ede1] p-4 text-sm leading-6">
             No journal videos are configured yet.
           </p>
         </section>
@@ -134,18 +134,18 @@ export default function ReadingJournalViewer({
   }
 
   return (
-    <main className="h-[100dvh] overflow-hidden bg-[#201f1b] text-[#f7f5ef]">
-      <header className="fixed inset-x-0 top-0 z-20 border-b border-[#f7f5ef]/20 bg-[#201f1b]">
+    <main className="h-[100dvh] overflow-hidden bg-[#22201b] text-[#f2ede1]">
+      <header className="fixed inset-x-0 top-0 z-20 border-b-2 border-[#f2ede1] bg-[#22201b]">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
           <Link
             aria-label="Back to main page"
-            className="inline-flex size-11 items-center justify-center border border-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+            className="riso-button riso-button-dark size-11 p-0"
             href="/"
           >
             <ArrowLeftIcon />
           </Link>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase">
+            <p className="riso-mono text-xs font-semibold uppercase">
               Bram&apos;s Reading Journal
             </p>
             <h1 className="truncate text-sm font-semibold sm:text-base">
@@ -174,7 +174,7 @@ export default function ReadingJournalViewer({
               }}
             >
               <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 items-center justify-center">
-                <div className="h-[calc(100dvh-8rem)] w-full overflow-hidden border border-[#f7f5ef]/20 bg-black sm:h-[calc(100dvh-9rem)]">
+                <div className="h-[calc(100dvh-8rem)] w-full overflow-hidden border-2 border-[#f2ede1] bg-black shadow-[4px_4px_0_#f2ede1] sm:h-[calc(100dvh-9rem)]">
                   <iframe
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
@@ -185,12 +185,12 @@ export default function ReadingJournalViewer({
                   />
                 </div>
               </div>
-              <div className="mx-auto mt-3 flex w-full max-w-5xl items-center justify-between gap-4 text-xs text-[#d8d1c1]">
+              <div className="riso-mono mx-auto mt-3 flex w-full max-w-5xl items-center justify-between gap-4 text-xs text-[#f2ede1]">
                 <p>
                   {index + 1} / {videos.length}
                 </p>
                 <a
-                  className="underline decoration-[#d8d1c1] underline-offset-4"
+                  className="underline decoration-[#f2ede1] underline-offset-4"
                   href={video.url}
                   rel="noreferrer"
                   target="_blank"

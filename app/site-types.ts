@@ -30,5 +30,6 @@ export type SiteData = {
   tags: string[];
   starterPackStrategyIds: string[];
   readingJournalYoutubeUrls: string[];
+  marqueeItems: string[];
   strategies: Strategy[];
 };

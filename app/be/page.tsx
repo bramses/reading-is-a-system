@@ -73,7 +73,7 @@ function TextField({
     <label className="grid gap-2">
       <span className="text-sm font-semibold uppercase">{label}</span>
       <input
-        className="w-full border border-[#c8c0ae] bg-white px-3 py-2 text-base outline-none focus:border-[#201f1b]"
+        className="w-full border border-[#c8c0ae] bg-white px-3 py-2 text-base outline-none focus:border-[#22201b]"
         defaultValue={defaultValue}
         name={name}
         required={required}
@@ -94,7 +94,7 @@ function TextAreaField({
     <label className="grid gap-2">
       <span className="text-sm font-semibold uppercase">{label}</span>
       <textarea
-        className="w-full resize-y border border-[#c8c0ae] bg-white px-3 py-2 text-base leading-7 outline-none focus:border-[#201f1b]"
+        className="w-full resize-y border border-[#c8c0ae] bg-white px-3 py-2 text-base leading-7 outline-none focus:border-[#22201b]"
         defaultValue={defaultValue}
         name={name}
         required={required}
@@ -106,7 +106,7 @@ function TextAreaField({
 
 function PageLinksEditor({ site }: { site: SiteData }) {
   return (
-    <section className="grid gap-5 border border-[#d8d1c1] bg-[#fffdf8] p-4 sm:p-5">
+    <section className="riso-panel grid gap-5 p-4 sm:p-5">
       <div>
         <h2 className="text-xl font-semibold">Page</h2>
       </div>
@@ -177,6 +177,13 @@ function PageLinksEditor({ site }: { site: SiteData }) {
         required={false}
         rows={5}
       />
+      <TextAreaField
+        defaultValue={listText(site.marqueeItems)}
+        label="Scrolling ticker items"
+        name="marqueeItems"
+        required={false}
+        rows={5}
+      />
     </section>
   );
 }
@@ -191,12 +198,12 @@ function StrategyEditor({
   const prefix = `strategy_${index}`;
 
   return (
-    <article className="grid gap-5 border border-[#d8d1c1] bg-[#fffdf8] p-4 sm:p-5">
+    <article className="riso-panel grid gap-5 p-4 sm:p-5">
       <input name="strategyIndex" type="hidden" value={index} />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold">{strategy.title}</h3>
-          <p className="mt-1 text-sm text-[#5f5a4f]">{strategy.id}</p>
+          <p className="mt-1 text-sm text-[#4a463c]">{strategy.id}</p>
         </div>
         <label className="flex items-center gap-2 text-sm font-medium">
           <input
@@ -278,7 +285,7 @@ function StrategyEditor({
 
 function NewStrategyEditor() {
   return (
-    <section className="grid gap-5 border border-[#d8d1c1] bg-[#fffdf8] p-4 sm:p-5">
+    <section className="riso-panel grid gap-5 p-4 sm:p-5">
       <div>
         <h2 className="text-xl font-semibold">New Strategy</h2>
       </div>
@@ -334,7 +341,7 @@ function NewStrategyEditor() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-[#f7f5ef] text-[#201f1b]">
+    <main className="riso-app min-h-screen bg-[#f2ede1] text-[#22201b]">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
         {children}
       </div>
@@ -348,7 +355,7 @@ function StatusBanner({ text }: { text: string }) {
   }
 
   return (
-    <p className="border border-[#c8c0ae] bg-[#fffdf8] px-3 py-2 text-sm font-medium">
+    <p className="border border-[#c8c0ae] bg-[#f8f4ea] px-3 py-2 text-sm font-medium">
       {text}
     </p>
   );
@@ -357,17 +364,17 @@ function StatusBanner({ text }: { text: string }) {
 function LoginPage({ status }: { status: string }) {
   return (
     <Shell>
-      <section className="mx-auto grid w-full max-w-lg gap-5 border border-[#d8d1c1] bg-[#fffdf8] p-5">
+      <section className="riso-panel mx-auto grid w-full max-w-lg gap-5 p-5">
         <div>
           <h1 className="text-2xl font-semibold">Content editor</h1>
-          <p className="mt-2 text-sm leading-6 text-[#5f5a4f]">/be</p>
+          <p className="mt-2 text-sm leading-6 text-[#4a463c]">/be</p>
         </div>
         <StatusBanner text={status} />
         {hasAdminPassword() ? (
           <form action={loginToEditor} className="grid gap-4">
             <TextField label="Password" name="password" type="password" />
             <button
-              className="border border-[#201f1b] px-3 py-2 text-sm font-semibold hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+              className="riso-button"
               type="submit"
             >
               Sign in
@@ -386,21 +393,21 @@ function LoginPage({ status }: { status: string }) {
 function EditorPage({ site, status }: { site: SiteData; status: string }) {
   return (
     <Shell>
-      <header className="flex flex-col gap-4 border-b border-[#d8d1c1] pb-6 sm:flex-row sm:items-start sm:justify-between">
+      <header className="flex flex-col gap-4 border-b border-[#22201b] pb-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase text-[#5f5a4f]">/be</p>
+          <p className="text-sm font-semibold uppercase text-[#4a463c]">/be</p>
           <h1 className="mt-2 text-3xl font-semibold">Content editor</h1>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            className="border border-[#c8c0ae] px-3 py-2 text-sm font-semibold hover:border-[#201f1b]"
+            className="riso-button"
             href="/"
           >
             Open site
           </Link>
           <form action={logoutOfEditor}>
             <button
-              className="border border-[#c8c0ae] px-3 py-2 text-sm font-semibold hover:border-[#201f1b]"
+              className="riso-button"
               type="submit"
             >
               Log out
@@ -417,7 +424,7 @@ function EditorPage({ site, status }: { site: SiteData; status: string }) {
         <section className="grid gap-4">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="text-xl font-semibold">Strategies</h2>
-            <p className="text-sm text-[#5f5a4f]">
+            <p className="text-sm text-[#4a463c]">
               {site.strategies.length} total
             </p>
           </div>
@@ -434,9 +441,9 @@ function EditorPage({ site, status }: { site: SiteData; status: string }) {
 
         <NewStrategyEditor />
 
-        <div className="sticky bottom-0 border-t border-[#d8d1c1] bg-[#f7f5ef] py-4">
+        <div className="sticky bottom-0 border-t border-[#22201b] bg-[#f2ede1] py-4">
           <button
-            className="w-full border border-[#201f1b] bg-[#201f1b] px-4 py-3 text-sm font-semibold text-[#f7f5ef] hover:bg-[#315d4c] sm:w-auto"
+            className="riso-button riso-button-primary w-full sm:w-auto"
             type="submit"
           >
             Save JSON

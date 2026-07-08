@@ -69,9 +69,19 @@ const STRATEGY_GAME_CONFETTI_COLORS = [
   "#b64f3a",
   "#d8b15f",
   "#2f5f87",
-  "#201f1b",
+  "#22201b",
   "#8a826f",
 ];
+const TAG_ACCENT_COLORS: Record<string, string> = {
+  comprehension: "oklch(0.56 0.12 255)",
+  throughput: "oklch(0.52 0.1 155)",
+  store: "oklch(0.64 0.12 80)",
+  search: "oklch(0.55 0.13 305)",
+  synthesize: "oklch(0.57 0.1 200)",
+  share: "oklch(0.6 0.15 350)",
+  digilog: "oklch(0.64 0.13 50)",
+  "bad-habits": "oklch(0.56 0.16 28)",
+};
 
 const BLANK_CART_STATE: CartState = {
   strategyIds: [],
@@ -166,6 +176,63 @@ function formatExportTimestamp(date = new Date()) {
 
 function createExportTitle(kind: "cart" | "strategy-game") {
   return `reading-is-a-system-${kind}-${formatExportTimestamp()}`;
+}
+
+function tagAccentColor(tag: string) {
+  return TAG_ACCENT_COLORS[tag] ?? "oklch(0.55 0.2 25)";
+}
+
+function strategyAccentColor(strategy: Strategy) {
+  return tagAccentColor(strategy.tags[0] ?? "");
+}
+
+function strategyAccentStyle(
+  strategy: Strategy,
+): CSSProperties & Record<"--strategy-accent", string> {
+  return {
+    "--strategy-accent": strategyAccentColor(strategy),
+  };
+}
+
+function tagStyle(
+  tag: string,
+  selected = true,
+): CSSProperties & Record<"--tag-color" | "--tag-ink", string> {
+  return {
+    "--tag-color": selected ? tagAccentColor(tag) : "#f8f4ea",
+    "--tag-ink": selected ? "#ffffff" : "#22201b",
+  };
+}
+
+function splitHeroTitle(title: string) {
+  const words = title.trim().split(/\s+/);
+  const accent = words.pop() ?? title;
+  const lead = words.join(" ");
+
+  return { accent, lead };
+}
+
+function repeatedMarqueeItems(items: string[]) {
+  return [...items, ...items];
+}
+
+function RisoMarquee({ items }: { items: string[] }) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="riso-marquee print:hidden">
+      <div className="riso-marquee-track">
+        {repeatedMarqueeItems(items).map((item, index) => (
+          <span aria-hidden={index >= items.length} key={`${item}-${index}`}>
+            {item}
+            <span className="mx-4 text-[var(--accent)]">+</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function createStrategyGameEntries(
@@ -819,6 +886,8 @@ function CartIcon({ selected = false }: { selected?: boolean }) {
 
 export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const tags = site.tags;
+  const marqueeItems = site.marqueeItems.length > 0 ? site.marqueeItems : tags;
+  const heroTitleParts = splitHeroTitle(site.title);
   const strategyById = useMemo(
     () =>
       new Map(
@@ -1555,18 +1624,18 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f5ef] text-[#201f1b] print:bg-white">
+    <main className="riso-app min-h-screen bg-[#f2ede1] text-[#22201b] print:bg-white">
       {lightboxImage ? (
         <div
           aria-label={lightboxImage.alt}
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#201f1b]/90 p-4 print:hidden sm:p-8"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#22201b]/90 p-4 print:hidden sm:p-8"
           onClick={() => setLightboxImage(null)}
           role="dialog"
         >
           <button
             aria-label="Close image"
-            className="absolute right-4 top-4 inline-flex size-11 items-center justify-center border border-[#f7f5ef] bg-[#201f1b] text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+            className="riso-button riso-button-dark absolute right-4 top-4 size-11 p-0"
             onClick={() => setLightboxImage(null)}
             type="button"
           >
@@ -1589,13 +1658,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         <div
           aria-label="Starter pack"
           aria-modal="true"
-          className="fixed inset-0 z-40 flex bg-[#201f1b]/90 p-3 print:hidden sm:p-6"
+          className="fixed inset-0 z-40 flex bg-[#22201b]/90 p-3 print:hidden sm:p-6"
           onClick={closeStarterPack}
           role="dialog"
         >
           <button
             aria-label="Previous starter pack strategy"
-            className="absolute left-3 top-1/2 hidden size-12 -translate-y-1/2 items-center justify-center border border-[#f7f5ef] bg-[#201f1b] text-xl font-semibold text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b] sm:inline-flex"
+            className="riso-button riso-button-dark absolute left-3 top-1/2 hidden size-12 -translate-y-1/2 p-0 text-xl font-semibold sm:inline-flex"
             onClick={(event) => {
               event.stopPropagation();
               moveStarterPack(-1);
@@ -1606,7 +1675,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
           </button>
           <button
             aria-label="Next starter pack strategy"
-            className="absolute right-3 top-1/2 hidden size-12 -translate-y-1/2 items-center justify-center border border-[#f7f5ef] bg-[#201f1b] text-xl font-semibold text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b] sm:inline-flex"
+            className="riso-button riso-button-dark absolute right-3 top-1/2 hidden size-12 -translate-y-1/2 p-0 text-xl font-semibold sm:inline-flex"
             onClick={(event) => {
               event.stopPropagation();
               moveStarterPack(1);
@@ -1620,14 +1689,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             className="mx-auto flex h-full w-full max-w-3xl flex-col gap-3"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between gap-3 text-[#f7f5ef]">
-              <p className="text-sm font-semibold uppercase">
+            <div className="flex items-center justify-between gap-3 text-[#f2ede1]">
+              <p className="riso-mono text-sm font-semibold uppercase">
                 Starter pack {starterPackIndex + 1} /{" "}
                 {starterPackStrategies.length}
               </p>
               <button
                 aria-label="Close starter pack"
-                className="inline-flex size-11 items-center justify-center border border-[#f7f5ef] bg-[#201f1b] text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+                className="riso-button riso-button-dark size-11 p-0"
                 onClick={closeStarterPack}
                 type="button"
               >
@@ -1635,12 +1704,19 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               </button>
             </div>
 
-            <article className="min-h-0 flex-1 overflow-y-auto border border-[#201f1b] bg-[#fffdf8] p-4 sm:p-6">
+            <article
+              className="riso-panel min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"
+              style={strategyAccentStyle(starterPackStrategy)}
+            >
+              <div className="-mx-4 -mt-4 mb-4 sm:-mx-6 sm:-mt-6">
+                <div className="riso-card-strip" />
+              </div>
               <div className="flex flex-wrap gap-2">
                 {starterPackStrategy.tags.map((tag) => (
                   <span
-                    className="border border-[#d8d1c1] px-2 py-1 text-xs text-[#5f5a4f]"
+                    className="riso-tag"
                     key={tag}
+                    style={tagStyle(tag)}
                   >
                     {tag}
                   </span>
@@ -1649,7 +1725,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-5xl">
                 {starterPackStrategy.title}
               </h2>
-              <p className="mt-3 text-lg leading-8 text-[#5f5a4f]">
+              <p className="riso-body-copy mt-3 text-lg leading-8">
                 {starterPackStrategy.subtitle}
               </p>
               {starterPackStrategy.body.trim() ? (
@@ -1661,7 +1737,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               {starterPackStrategy.imageUrls[0] ? (
                 <button
                   aria-label={`Open ${starterPackStrategy.title} image`}
-                  className="mt-5 block w-full cursor-zoom-in border border-[#d8d1c1] bg-[#f7f5ef]"
+                  className="mt-5 block w-full cursor-zoom-in border border-[#22201b] bg-[#f2ede1]"
                   onClick={() =>
                     setLightboxImage({
                       alt: `${starterPackStrategy.title} image`,
@@ -1705,10 +1781,8 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               ) : null}
 
               <button
-                className={`mt-6 inline-flex w-full items-center justify-center gap-2 border px-3 py-3 text-sm font-semibold sm:w-auto ${
-                  starterPackInCart
-                    ? "border-[#315d4c] bg-[#315d4c] text-[#fffdf8]"
-                    : "border-[#315d4c] text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8]"
+                className={`riso-button mt-6 w-full gap-2 sm:w-auto ${
+                  starterPackInCart ? "riso-button-active" : "text-[#315d4c]"
                 }`}
                 onClick={() =>
                   starterPackInCart
@@ -1724,14 +1798,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
 
             <div className="grid grid-cols-2 gap-3 sm:hidden">
               <button
-                className="border border-[#f7f5ef] bg-[#201f1b] px-3 py-3 text-sm font-semibold text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+                className="riso-button riso-button-dark"
                 onClick={() => moveStarterPack(-1)}
                 type="button"
               >
                 Previous
               </button>
               <button
-                className="border border-[#f7f5ef] bg-[#201f1b] px-3 py-3 text-sm font-semibold text-[#f7f5ef] hover:bg-[#f7f5ef] hover:text-[#201f1b]"
+                className="riso-button riso-button-dark"
                 onClick={() => moveStarterPack(1)}
                 type="button"
               >
@@ -1746,27 +1820,27 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         <div
           aria-label="Strategy Game"
           aria-modal="true"
-          className="fixed inset-0 z-50 bg-[#f7f5ef] print:hidden sm:flex sm:items-center sm:justify-center sm:bg-[#201f1b]/90 sm:p-6"
+          className="fixed inset-0 z-50 bg-[#f2ede1] print:hidden sm:flex sm:items-center sm:justify-center sm:bg-[#22201b]/90 sm:p-6"
           onClick={closeStrategyGame}
           role="dialog"
         >
           <div
-            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col bg-[#fffdf8] sm:h-auto sm:max-h-full sm:max-w-3xl sm:border sm:border-[#201f1b]"
+            className="riso-panel flex h-[100dvh] max-h-[100dvh] w-full flex-col sm:h-auto sm:max-h-full sm:max-w-3xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#d8d1c1] bg-[#fffdf8] p-4 sm:static sm:p-5">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b-2 border-[#22201b] bg-[#f8f4ea] p-4 sm:static sm:p-5">
               <div>
-                <p className="text-sm font-semibold uppercase">
+                <p className="riso-mono text-sm font-semibold uppercase">
                   Strategy Game
                 </p>
-                <p className="mt-1 text-sm leading-6 text-[#5f5a4f]">
+                <p className="mt-1 text-sm leading-6 text-[#4a463c]">
                   Write 140 characters for each selected strategy. The game
                   avoids strategies you&apos;ve already seen this session.
                 </p>
               </div>
               <button
                 aria-label="Close Strategy Game"
-                className="inline-flex size-11 items-center justify-center border border-[#201f1b] text-[#201f1b] hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                className="riso-button size-11 p-0"
                 onClick={closeStrategyGame}
                 type="button"
               >
@@ -1779,7 +1853,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 <h2 className="text-3xl font-semibold leading-tight">
                   Good job!
                 </h2>
-                <p className="mt-2 leading-7 text-[#5f5a4f]">
+                <p className="mt-2 leading-7 text-[#4a463c]">
                   You completed {strategyGameEntries.length} strategy
                   responses.
                 </p>
@@ -1787,27 +1861,27 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 <div className="mt-5 grid gap-3">
                   {strategyGameResponses.map(({ entry, strategy }, index) => (
                     <article
-                      className="border border-[#d8d1c1] bg-white p-3"
+                      className="riso-panel p-3"
                       key={`${entry.strategyId}-${index}`}
                     >
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <h3 className="font-semibold leading-tight">
                           {strategy.title}
                         </h3>
-                        <p className="text-sm text-[#5f5a4f]">
+                        <p className="text-sm text-[#4a463c]">
                           {countCharacters(entry.response)} characters
                         </p>
                       </div>
-                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#5f5a4f]">
+                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#4a463c]">
                         {entry.response}
                       </p>
                     </article>
                   ))}
                 </div>
 
-                <div className="sticky bottom-0 -mx-4 mt-6 flex flex-col gap-2 border-t border-[#d8d1c1] bg-[#fffdf8] p-4 sm:static sm:mx-0 sm:flex-row sm:border-0 sm:p-0">
+                <div className="sticky bottom-0 -mx-4 mt-6 flex flex-col gap-2 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4 sm:static sm:mx-0 sm:flex-row sm:border-0 sm:p-0">
                   <button
-                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f] sm:hidden"
+                    className="riso-button sm:hidden"
                     disabled={!strategyGameCanDownload}
                     onClick={() => void copyStrategyGameMarkdown()}
                     type="button"
@@ -1815,7 +1889,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     Copy Markdown
                   </button>
                   <button
-                    className="hidden border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f] sm:inline-flex"
+                    className="riso-button hidden sm:inline-flex"
                     disabled={!strategyGameCanDownload}
                     onClick={printStrategyGameResponses}
                     type="button"
@@ -1823,7 +1897,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     Download PDF
                   </button>
                   <button
-                    className="border border-[#315d4c] px-3 py-2 text-sm font-medium text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                    className="riso-button"
                     disabled={!strategyGameCanStart}
                     onClick={() => startStrategyGame()}
                     type="button"
@@ -1831,7 +1905,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     Play again
                   </button>
                   <button
-                    className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                    className="riso-button"
                     onClick={closeStrategyGame}
                     type="button"
                   >
@@ -1839,7 +1913,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   </button>
                 </div>
                 {!strategyGameCanStart ? (
-                  <p className="mt-4 text-sm leading-6 text-[#5f5a4f]">
+                  <p className="mt-4 text-sm leading-6 text-[#4a463c]">
                     No unseen strategies remain in this browser session.
                   </p>
                 ) : null}
@@ -1856,7 +1930,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     className={`text-sm font-semibold ${
                       strategyGameCanAdvance
                         ? "text-[#315d4c]"
-                        : "text-[#5f5a4f]"
+                        : "text-[#4a463c]"
                     }`}
                     id="strategy-game-character-count"
                   >
@@ -1865,12 +1939,17 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   </p>
                 </div>
 
-                <article className="mt-4 border border-[#d8d1c1] bg-white p-4">
+                <article
+                  className="riso-panel mt-4 p-4"
+                  style={strategyAccentStyle(currentStrategyGameStrategy)}
+                >
+                  <div className="riso-card-strip -mx-4 -mt-4 mb-4" />
                   <div className="flex flex-wrap gap-2">
                     {currentStrategyGameStrategy.tags.map((tag) => (
                       <span
-                        className="border border-[#d8d1c1] px-2 py-1 text-xs text-[#5f5a4f]"
+                        className="riso-tag"
                         key={tag}
+                        style={tagStyle(tag)}
                       >
                         {tag}
                       </span>
@@ -1879,11 +1958,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   <h2 className="mt-4 text-xl font-semibold leading-tight sm:text-3xl">
                     {currentStrategyGameStrategy.title}
                   </h2>
-                  <p className="mt-2 text-sm leading-6 text-[#5f5a4f] sm:text-base sm:leading-7">
+                  <p className="riso-body-copy mt-2 text-sm leading-6 sm:text-base sm:leading-7">
                     {currentStrategyGameStrategy.subtitle}
                   </p>
                   {currentStrategyGameStrategy.body.trim() ? (
-                    <p className="mt-4 max-h-28 overflow-y-auto border-t border-[#d8d1c1] pt-4 text-sm leading-6 text-[#333029] sm:max-h-40">
+                    <p className="mt-4 max-h-28 overflow-y-auto border-t border-[#22201b] pt-4 text-sm leading-6 text-[#333029] sm:max-h-40">
                       {currentStrategyGameStrategy.body}
                     </p>
                   ) : null}
@@ -1895,7 +1974,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   </span>
                   <textarea
                     aria-describedby="strategy-game-character-count"
-                    className="mt-2 min-h-36 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b] sm:min-h-52"
+                    className="riso-input mt-2 min-h-36 w-full resize-y p-3 leading-6 sm:min-h-52"
                     onChange={(event) =>
                       updateStrategyGameResponse(event.target.value)
                     }
@@ -1904,12 +1983,12 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   />
                 </label>
 
-                <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t border-[#d8d1c1] bg-[#fffdf8] p-4 sm:static sm:mx-0 sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:p-0">
-                  <p className="text-sm leading-6 text-[#5f5a4f]">
+                <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4 sm:static sm:mx-0 sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:p-0">
+                  <p className="text-sm leading-6 text-[#4a463c]">
                     The next prompt unlocks at 140 characters.
                   </p>
                   <button
-                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                    className="riso-button"
                     disabled={!strategyGameCanAdvance}
                     onClick={completeStrategyGameStep}
                     type="button"
@@ -1922,7 +2001,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               </div>
             ) : (
               <div className="p-4 sm:p-5">
-                <p className="leading-7 text-[#5f5a4f]">
+                <p className="leading-7 text-[#4a463c]">
                   No strategies are available for this game.
                 </p>
               </div>
@@ -1949,7 +2028,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
       {clipboardMessage ? (
         <p
           aria-live="polite"
-          className="fixed inset-x-4 bottom-4 z-[70] border border-[#201f1b] bg-[#fffdf8] px-3 py-2 text-sm font-medium shadow-sm print:hidden sm:left-auto sm:right-4 sm:max-w-sm"
+          className="riso-panel fixed inset-x-4 bottom-4 z-[70] px-3 py-2 text-sm font-medium print:hidden sm:left-auto sm:right-4 sm:max-w-sm"
         >
           {clipboardMessage}
         </p>
@@ -1990,33 +2069,29 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         </section>
       ) : null}
 
-      <div
-        className={`mx-auto flex w-full max-w-6xl flex-col gap-7 px-4 py-6 sm:gap-8 sm:px-8 sm:py-8 lg:px-10 print:max-w-none print:gap-0 print:px-0 print:py-0 ${
-          cartStrategies.length > 0 ? "pb-36 sm:pb-8" : ""
-        }`}
-      >
-        <header className="flex flex-col gap-6 border-b border-[#d8d1c1] pb-8 print:hidden">
-          <nav className="flex flex-wrap gap-3 text-sm font-medium">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-4 py-6 sm:gap-8 sm:px-8 sm:py-8 lg:px-10 print:max-w-none print:gap-0 print:px-0 print:py-0">
+        <header className="sticky top-0 z-[80] -mx-4 -mt-6 border-b-2 border-[#22201b] bg-[#f2ede1] print:hidden sm:-mx-8 sm:-mt-8 lg:-mx-10">
+          <nav className="riso-topscroll mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto px-4 py-3 sm:px-8 lg:px-10">
             <a
-              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              className="riso-nav-link"
               href={site.links.discord}
               target="_blank"
               rel="noreferrer"
             >
               <DiscordIcon />
-              Join the community
+              Community
             </a>
             <a
-              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              className="riso-nav-link"
               href={site.links.slides}
               target="_blank"
               rel="noreferrer"
             >
               <SlidesIcon />
-              View the slides
+              Slides
             </a>
             <a
-              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              className="riso-nav-link"
               href={site.links.github}
               target="_blank"
               rel="noreferrer"
@@ -2025,21 +2100,21 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               Star on GitHub
             </a>
             <Link
-              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              className="riso-nav-link"
               href="/reading-journal"
             >
               <VideoIcon />
-              Bram&apos;s Reading Journal
+              Reading Journal
             </Link>
-            <details className="group relative w-full sm:w-auto">
-              <summary className="inline-flex w-full cursor-pointer list-none items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto [&::-webkit-details-marker]:hidden">
+            <details className="group relative flex-none">
+              <summary className="riso-nav-link cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                 <CalendarIcon />
                 Talk to Bram
                 <ChevronDownIcon />
               </summary>
-              <div className="mt-2 grid w-full border border-[#201f1b] bg-[#fffdf8] text-[#201f1b] shadow-sm sm:absolute sm:right-0 sm:top-full sm:z-20 sm:w-72">
+              <div className="fixed right-4 top-16 z-[90] grid w-72 border-2 border-[#22201b] bg-[#f8f4ea] text-[#22201b] shadow-[4px_4px_0_#22201b] sm:right-8 lg:right-10">
                 <a
-                  className="px-3 py-3 hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                  className="px-3 py-3 hover:bg-[#22201b] hover:text-[#f2ede1]"
                   href={site.links.schedule}
                   target="_blank"
                   rel="noreferrer"
@@ -2047,7 +2122,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   1:1 meeting
                 </a>
                 <a
-                  className="border-t border-[#d8d1c1] px-3 py-3 hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                  className="border-t border-[#22201b] px-3 py-3 hover:bg-[#22201b] hover:text-[#f2ede1]"
                   href={site.links.bookClub}
                   target="_blank"
                   rel="noreferrer"
@@ -2057,45 +2132,77 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               </div>
             </details>
             <a
-              className="inline-flex w-full items-center justify-center gap-2 border border-[#201f1b] px-3 py-2 hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+              className="riso-nav-link"
               href={site.links.kofi}
               target="_blank"
               rel="noreferrer"
             >
               <CoffeeIcon />
-              Support the Project
+              Support
             </a>
+            <Link
+              aria-label={`Open checklist cart with ${cartStrategies.length} selected strategies`}
+              className="riso-nav-chip ml-auto sm:hidden"
+              href="/checklist"
+            >
+              <CartIcon selected={cartStrategies.length > 0} />
+              Cart
+              <span className="inline-flex min-w-6 items-center justify-center bg-[var(--accent)] px-1.5 py-0.5 text-white">
+                {cartStrategies.length}
+              </span>
+            </Link>
+            <button
+              aria-controls="cart-panel"
+              aria-expanded={cartExpanded}
+              aria-label={`Toggle cart with ${cartStrategies.length} selected strategies`}
+              className="riso-nav-chip ml-auto hidden sm:inline-flex"
+              onClick={() => setCartExpanded((expanded) => !expanded)}
+              type="button"
+            >
+              <CartIcon selected={cartStrategies.length > 0} />
+              Cart
+              <span className="inline-flex min-w-6 items-center justify-center bg-[var(--accent)] px-1.5 py-0.5 text-white">
+                {cartStrategies.length}
+              </span>
+            </button>
           </nav>
+        </header>
 
+        <section className="py-8 print:hidden sm:py-12">
+          <p className="riso-hero-kicker mb-4">Issue 01 / Strategy library</p>
           <div className="max-w-4xl">
-            <h1 className="text-3xl font-semibold leading-tight sm:text-6xl">
-              {site.title}
+            <h1 className="riso-hero-title">
+              {heroTitleParts.lead}{" "}
+              <span className="riso-hero-accent">
+                <span>{heroTitleParts.accent}</span>
+              </span>
             </h1>
-            <p className="mt-5 max-w-3xl text-lg leading-8 text-[#5f5a4f] sm:text-xl">
+            <p className="riso-body-copy mt-5 max-w-3xl text-lg leading-8 sm:text-xl">
               {site.subtitle}
             </p>
           </div>
-        </header>
+        </section>
+
+        <div className="-mx-4 print:hidden sm:-mx-8 lg:-mx-10">
+          <RisoMarquee items={marqueeItems} />
+        </div>
 
         <section
           aria-labelledby="tag-filter-title"
-          className="border-b border-[#d8d1c1] pb-8 print:hidden"
+          className="-mx-4 border-y-2 border-[#22201b] bg-[#f4e3dc] px-4 py-7 print:hidden sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10"
         >
           <div
             aria-labelledby="reading-timer-title"
-            className="border border-[#d8d1c1] bg-[#fffdf8] p-4"
+            className="riso-panel p-4 sm:p-5"
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3
-                  className="text-sm font-semibold uppercase"
+                  className="riso-section-kicker"
                   id="reading-timer-title"
                 >
                   Start Reading Right Now
                 </h3>
-                <p className="mt-1 text-sm leading-6 text-[#5f5a4f]">
-                  
-                </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:justify-end">
@@ -2114,7 +2221,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 {activeReadingTimer ? (
                   <>
                     <button
-                      className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                      className="riso-button"
                       onClick={
                         readingTimerPaused
                           ? resumeReadingTimer
@@ -2125,7 +2232,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                       {readingTimerPaused ? "Resume" : "Pause"}
                     </button>
                     <button
-                      className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                      className="riso-button"
                       onClick={cancelReadingTimer}
                       type="button"
                     >
@@ -2134,7 +2241,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   </>
                 ) : (
                   <button
-                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                    className="riso-button riso-button-primary"
                     disabled={readingTimerComplete}
                     onClick={startReadingTimer}
                     type="button"
@@ -2191,10 +2298,10 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                       aria-pressed={blockCompleted || blockSelected}
                       className={`relative aspect-square overflow-hidden border text-[0.65rem] font-semibold tabular-nums transition-colors ${
                         blockCompleted
-                          ? "border-[#315d4c] bg-white text-[#fffdf8]"
+                          ? "border-[#315d4c] bg-white text-[#f8f4ea]"
                           : blockSelected
-                            ? "border-[#201f1b] bg-[#ede5d4] text-[#201f1b]"
-                            : "border-[#c8c0ae] bg-white text-[#5f5a4f] hover:border-[#201f1b]"
+                            ? "border-[#22201b] bg-[#efe6d7] text-[#22201b]"
+                            : "border-[#c8c0ae] bg-white text-[#4a463c] hover:border-[#22201b]"
                       } disabled:cursor-default`}
                       disabled={blockDisabled}
                       key={blockIndex}
@@ -2210,7 +2317,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                       ) : null}
                       <span
                         className={`relative z-10 ${
-                          blockFillProgress > 0.65 ? "text-[#fffdf8]" : ""
+                          blockFillProgress > 0.65 ? "text-[#f8f4ea]" : ""
                         }`}
                       >
                         {blockEndMinutes}
@@ -2222,25 +2329,25 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-2">
+          <div className="riso-mono mt-5 grid gap-2 text-sm">
             {starterPackStrategies.length > 0 ? (
               <button
-                className="text-left text-sm font-medium underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
+                className="text-left underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
                 onClick={openStarterPack}
                 type="button"
               >
-                Unsure of where to start? Here&apos;s a starter pack.
+                + Unsure of where to start? Here&apos;s a starter pack.
               </button>
             ) : null}
             <div className="grid justify-items-start gap-2">
               <button
                 aria-controls="kindle-reader-menu"
                 aria-expanded={kindleMenuOpen}
-                className="text-left text-sm font-medium underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
+                className="text-left underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
                 onClick={() => setKindleMenuOpen((open) => !open)}
                 type="button"
               >
-                Are you a Kindle user? Yes? Press this button to read right
+                + Are you a Kindle user? Yes? Press this button to read right
                 now. Go. Do it!!
               </button>
               {kindleMenuOpen ? (
@@ -2249,13 +2356,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   id="kindle-reader-menu"
                 >
                   <a
-                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+                    className="riso-button"
                     href={KINDLE_APP_DEEP_LINK}
                   >
                     Open Kindle app
                   </a>
                   <a
-                    className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                    className="riso-button"
                     href={KINDLE_WEB_READER_URL}
                     rel="noreferrer"
                     target="_blank"
@@ -2263,13 +2370,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     Open Kindle in browser
                   </a>
                   <a
-                    className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                    className="riso-button"
                     href={AUDIBLE_APP_DEEP_LINK}
                   >
                     Open Audible app
                   </a>
                   <a
-                    className="border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                    className="riso-button"
                     href={AUDIBLE_WEB_URL}
                     rel="noreferrer"
                     target="_blank"
@@ -2283,24 +2390,25 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
 
           <div
             aria-labelledby="strategy-game-title"
-            className="mt-6 border border-[#d8d1c1] bg-[#fffdf8] p-4"
+            className="riso-panel mt-6 p-5"
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
+                <p className="riso-mono mb-1 text-xs font-semibold uppercase text-[var(--accent)]">
+                  Mini game
+                </p>
                 <h2
-                  className="text-sm font-semibold uppercase"
+                  className="text-2xl font-bold leading-tight"
                   id="strategy-game-title"
                 >
-                  Tweet @ Your Books
+                  Tweet{" "}
+                  <span className="riso-italic font-normal">@</span> Your Books
                 </h2>
-                <p className="mt-1 max-w-2xl text-sm leading-6 text-[#5f5a4f]">
-                  
-                </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 {strategyGameCanStart || strategyGameInProgress ? (
                   <Link
-                    className="border border-[#201f1b] px-3 py-2 text-center text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:hidden"
+                    className="riso-button text-center sm:hidden"
                     href="/strategy-game"
                     onClick={() => {
                       if (!strategyGameInProgress) {
@@ -2312,7 +2420,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   </Link>
                 ) : (
                   <button
-                    className="border border-[#201f1b] px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] sm:hidden"
+                    className="riso-button sm:hidden"
                     disabled
                     type="button"
                   >
@@ -2320,7 +2428,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   </button>
                 )}
                 <button
-                  className="hidden border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f] sm:inline-flex"
+                  className="riso-button hidden sm:inline-flex"
                   disabled={!strategyGameCanStart && !strategyGameInProgress}
                   onClick={() => {
                     if (strategyGameInProgress) {
@@ -2337,14 +2445,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 {strategyGameCanDownload ? (
                   <>
                     <button
-                      className="border border-[#315d4c] px-3 py-2 text-sm font-medium text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8] sm:hidden"
+                      className="riso-button border-[#315d4c] text-[#315d4c] sm:hidden"
                       onClick={() => void copyStrategyGameMarkdown()}
                       type="button"
                     >
                       Copy Markdown
                     </button>
                     <button
-                      className="hidden border border-[#315d4c] px-3 py-2 text-sm font-medium text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8] sm:inline-flex"
+                      className="riso-button hidden border-[#315d4c] text-[#315d4c] sm:inline-flex"
                       onClick={printStrategyGameResponses}
                       type="button"
                     >
@@ -2366,13 +2474,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             <div className="mb-4 flex items-center justify-between gap-4">
               <h2
                 id="tag-filter-title"
-                className="text-sm font-semibold uppercase"
+                className="riso-section-kicker"
               >
-                Tags
+                Filter by tag
               </h2>
               {activeTags.length > 0 ? (
                 <button
-                  className="text-sm underline decoration-[#8a826f] underline-offset-4"
+                  className="riso-mono text-sm underline decoration-[#8a826f] underline-offset-4"
                   type="button"
                   onClick={() => setActiveTags([])}
                 >
@@ -2382,95 +2490,99 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
+              {tags.map((tag) => {
+                const selected = activeTags.includes(tag);
+
+                return (
                 <label
-                  className="flex cursor-pointer items-center gap-2 border border-[#c8c0ae] bg-[#fffdf8] px-3 py-2 text-sm"
+                  className="riso-tag flex cursor-pointer items-center gap-2 transition-transform hover:rotate-[-2deg]"
                   key={tag}
+                  style={tagStyle(tag, selected)}
                 >
                   <input
-                    checked={activeTags.includes(tag)}
+                    checked={selected}
                     className="size-4 accent-[#315d4c]"
                     onChange={() => toggleTag(tag)}
                     type="checkbox"
                   />
                   {tag}
                 </label>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
 
-        {cartStrategies.length > 0 ? (
+        {cartExpanded || (printMode === "cart" && cartStrategies.length > 0) ? (
           <section
             aria-labelledby="cart-title"
-            className={`fixed inset-x-3 bottom-3 z-30 overflow-y-auto overscroll-contain border border-[#d8d1c1] bg-[#fffdf8] p-3 shadow-sm sm:bottom-auto sm:left-auto sm:right-4 sm:top-0 sm:max-h-screen sm:w-96 ${
-              printMode === "strategyGame"
+            className={`riso-panel fixed right-4 top-20 z-[70] hidden max-h-[calc(100dvh-6rem)] w-96 overflow-y-auto overscroll-contain p-3 sm:block ${
+              printMode === "strategyGame" || cartStrategies.length === 0
                 ? "print:hidden"
                 : "print:static print:z-auto print:max-h-none print:w-full print:overflow-visible print:border-0 print:bg-white print:p-0 print:shadow-none"
-            } ${
-              cartExpanded ? "max-h-96" : ""
             }`}
+            id="cart-panel"
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between print:hidden">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <h2 id="cart-title" className="text-sm font-semibold uppercase">
                   Cart
                 </h2>
-                <p className="text-sm text-[#5f5a4f]">
+                <p className="text-sm text-[#4a463c]">
                   {cartStrategies.length} selected
                 </p>
               </div>
 
               <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto print:hidden">
-                <Link
-                  className="border border-[#c8c0ae] px-2 py-2 text-center text-xs font-medium hover:border-[#201f1b] sm:hidden"
-                  href="/checklist"
-                >
-                  Edit
-                </Link>
+                {cartStrategies.length > 0 ? (
+                  <>
+                    <button
+                      className="riso-button px-2 py-2 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+                      onClick={printCart}
+                      type="button"
+                    >
+                      Print / PDF
+                    </button>
+                    <button
+                      className="riso-button px-2 py-2 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+                      onClick={() => void copyCartMarkdown()}
+                      type="button"
+                    >
+                      Copy
+                    </button>
+                    <button
+                      className="riso-button px-2 py-2 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+                      onClick={clearCart}
+                      type="button"
+                    >
+                      Clear
+                    </button>
+                  </>
+                ) : null}
                 <button
-                  className="hidden border border-[#c8c0ae] px-2 py-2 text-xs font-medium hover:border-[#201f1b] sm:inline-flex sm:px-3 sm:py-1.5 sm:text-sm"
-                  onClick={() => setCartExpanded((expanded) => !expanded)}
+                  className="riso-button px-2 py-2 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+                  onClick={() => setCartExpanded(false)}
                   type="button"
                 >
-                  {cartExpanded ? "Hide checklist" : "Edit checklist"}
-                </button>
-                <button
-                  className="border border-[#201f1b] px-2 py-2 text-xs font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:hidden"
-                  onClick={() => void copyCartMarkdown()}
-                  type="button"
-                >
-                  Copy
-                </button>
-                <button
-                  className="hidden border border-[#201f1b] px-2 py-2 text-xs font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:inline-flex sm:px-3 sm:py-1.5 sm:text-sm"
-                  onClick={printCart}
-                  type="button"
-                >
-                  Print / PDF
-                </button>
-                <button
-                  className="border border-[#c8c0ae] px-2 py-2 text-xs font-medium hover:border-[#201f1b] sm:px-3 sm:py-1.5 sm:text-sm"
-                  onClick={clearCart}
-                  type="button"
-                >
-                  Clear
+                  Close
                 </button>
               </div>
             </div>
 
-            <div
-              className={`${
-                cartExpanded ? "mt-4 grid gap-3 sm:gap-4" : "hidden"
-              } print:mt-0 print:grid print:gap-0`}
-            >
+            {cartStrategies.length === 0 ? (
+              <p className="mt-4 text-sm leading-6 text-[#4a463c] print:hidden">
+                Add strategies from the cards below, then open this cart again
+                to fill in the checklist.
+              </p>
+            ) : (
+            <div className="mt-4 grid gap-3 sm:gap-4 print:mt-0 print:grid print:gap-0">
               {cartStrategies.map((strategy) => {
                 const checklistEntry =
                   checklistEntries[strategy.id] ?? createBlankChecklistEntry();
 
                 return (
                   <article
-                    className="print-strategy break-inside-avoid border border-[#d8d1c1] p-3 sm:p-4 print:border-2 print:border-[#201f1b] print:p-8"
+                    className="print-strategy break-inside-avoid border-2 border-[#22201b] p-3 sm:p-4 print:border-2 print:border-[#22201b] print:p-8"
                     key={strategy.id}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
@@ -2478,12 +2590,12 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                         <h3 className="text-xl font-semibold leading-tight sm:text-2xl print:text-4xl">
                           {strategy.title}
                         </h3>
-                        <p className="mt-1 leading-7 text-[#5f5a4f] print:mt-3 print:text-xl print:leading-8 print:text-[#201f1b]">
+                        <p className="mt-1 leading-7 text-[#4a463c] print:mt-3 print:text-xl print:leading-8 print:text-[#22201b]">
                           {strategy.subtitle}
                         </p>
                       </div>
                       <button
-                        className="w-full border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b] sm:w-auto print:hidden"
+                        className="riso-button w-full sm:w-auto print:hidden"
                         onClick={() => removeStrategyFromCart(strategy.id)}
                         type="button"
                       >
@@ -2501,7 +2613,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                             {field.label}
                           </span>
                           <textarea
-                            className="print-checklist-box mt-2 min-h-32 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b] print:mt-4 print:min-h-72 print:resize-none print:border-2 print:p-5 print:text-xl print:leading-8"
+                            className="riso-input print-checklist-box mt-2 min-h-32 w-full resize-y p-3 leading-6 print:mt-4 print:min-h-72 print:resize-none print:border-2 print:p-5 print:text-xl print:leading-8"
                             onChange={(event) =>
                               updateChecklistEntry(
                                 strategy.id,
@@ -2518,25 +2630,37 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 );
               })}
             </div>
+            )}
           </section>
         ) : null}
 
-        <div className="flex justify-end print:hidden">
+        <div className="flex flex-col gap-3 print:hidden sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex items-baseline gap-3">
+            <h2 className="text-3xl font-extrabold leading-tight">
+              All <span className="riso-italic font-normal">strategies</span>
+            </h2>
+            <span className="riso-mono text-sm text-[#a49c8a]">
+              {filteredStrategies.length}
+              {activeTags.length > 0 ? ` of ${site.strategies.length}` : ""}{" "}
+              strategies
+            </span>
+          </div>
           <button
-            className="w-full border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] sm:w-auto"
+            className="riso-button w-full sm:w-auto"
             onClick={shuffleVisibleStrategies}
             type="button"
           >
-            Shuffle strategies
+            Shuffle
           </button>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-2 print:hidden">
+        <section className="grid gap-5 md:grid-cols-2 print:hidden">
           {filteredStrategies.map((strategy, index) => {
             const expanded = expandedId === strategy.id;
             const shouldPulseDetailsButton =
               index === 0 && !detailsButtonInteracted && !expanded;
             const inCart = cartStrategyIds.includes(strategy.id);
+            const strategyNumber = String(index + 1).padStart(2, "0");
             const pairedStrategies = strategy.pairedWithIds
               .map((strategyId) => strategyById.get(strategyId))
               .filter((pairedStrategy): pairedStrategy is Strategy =>
@@ -2546,37 +2670,70 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
 
             return (
               <article
-                className={`scroll-mt-6 border bg-[#fffdf8] ${
-                  expanded
-                    ? "border-[#201f1b] shadow-[0_0_0_2px_#201f1b]"
-                    : "border-[#d8d1c1]"
+                className={`riso-card scroll-mt-24 overflow-hidden ${
+                  index % 5 === 0 ? "md:col-span-2" : ""
                 }`}
                 id={`strategy-${strategy.id}`}
                 key={strategy.id}
+                style={strategyAccentStyle(strategy)}
               >
+                {strategy.imageUrls[0] ? (
+                  <button
+                    aria-label={`Open ${strategy.title} image 1`}
+                    className="relative block h-48 w-full cursor-zoom-in overflow-hidden border-b-2 border-[#22201b] bg-[#f2ede1] text-left sm:h-56"
+                    onClick={() =>
+                      setLightboxImage({
+                        alt: `${strategy.title} image 1`,
+                        url: strategy.imageUrls[0],
+                      })
+                    }
+                    type="button"
+                  >
+                    <img
+                      alt={`${strategy.title} image 1`}
+                      className="block h-full w-full object-cover"
+                      loading="lazy"
+                      src={strategy.imageUrls[0]}
+                    />
+                    <span className="riso-mono absolute bottom-3 left-3 bg-[#f8f4ea] px-2 py-1 text-[10px] uppercase text-[#7a7466]">
+                      Strategy image
+                    </span>
+                    <span className="riso-italic absolute right-3 top-2 text-6xl text-[#22201b]">
+                      {strategyNumber}
+                    </span>
+                  </button>
+                ) : (
+                  <div className="riso-card-strip" />
+                )}
                 <div className="p-4 sm:p-5">
                   <div>
                     <span className="mb-3 flex flex-wrap gap-2">
                       {strategy.tags.map((tag) => (
                         <span
-                          className="border border-[#d8d1c1] px-2 py-1 text-xs text-[#5f5a4f]"
+                          className="riso-tag"
                           key={tag}
+                          style={tagStyle(tag)}
                         >
                           {tag}
                         </span>
                       ))}
+                      {strategy.tags.length === 0 ? (
+                        <span className="riso-card-number">
+                          {strategyNumber}
+                        </span>
+                      ) : null}
                     </span>
-                    <h3 className="text-xl font-semibold leading-tight sm:text-2xl">
+                    <h3 className="text-2xl font-bold leading-tight">
                       {strategy.title}
                     </h3>
-                    <p className="mt-2 leading-7 text-[#5f5a4f]">
+                    <p className="riso-body-copy mt-2 leading-7">
                       {strategy.subtitle}
                     </p>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       aria-expanded={expanded}
-                      className={`border border-[#201f1b] px-3 py-2 text-sm font-medium hover:bg-[#201f1b] hover:text-[#fffdf8] ${
+                      className={`riso-button ${
                         shouldPulseDetailsButton
                           ? "motion-safe:animate-pulse shadow-[0_0_0_2px_#315d4c]"
                           : ""
@@ -2593,10 +2750,10 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                           : `Add ${strategy.title} to cart`
                       }
                       aria-pressed={inCart}
-                      className={`inline-flex size-10 items-center justify-center border text-sm font-medium ${
+                      className={`riso-button size-10 p-0 ${
                         inCart
-                          ? "border-[#315d4c] bg-[#315d4c] text-[#fffdf8]"
-                          : "border-[#315d4c] text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8]"
+                          ? "riso-button-active"
+                          : "border-[#315d4c] text-[#315d4c]"
                       }`}
                       onClick={() =>
                         inCart
@@ -2612,8 +2769,8 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 </div>
 
                 {expanded ? (
-                  <div className="border-t border-[#d8d1c1] px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
-                    <p className="max-w-prose leading-7 text-[#333029]">
+                  <div className="border-t-2 border-dashed border-[#22201b]/30 px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
+                    <p className="riso-body-copy max-w-prose leading-7 text-[#333029]">
                       {strategy.body}
                     </p>
 
@@ -2631,7 +2788,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                             return (
                               <button
                                 aria-label={`Open ${imageAlt}`}
-                                className="block w-full cursor-zoom-in border border-[#d8d1c1] bg-[#f7f5ef]"
+                                className="block w-full cursor-zoom-in border border-[#22201b] bg-[#f2ede1]"
                                 key={url}
                                 onClick={() =>
                                   setLightboxImage({ alt: imageAlt, url })
@@ -2725,7 +2882,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         </section>
 
         {filteredStrategies.length === 0 ? (
-          <p className="border border-[#d8d1c1] bg-[#fffdf8] p-5 text-[#5f5a4f]">
+          <p className="border border-[#22201b] bg-[#f8f4ea] p-5 text-[#4a463c]">
             No strategies match the active tags.
           </p>
         ) : null}
@@ -2953,19 +3110,21 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f5ef] text-[#201f1b]">
-      <header className="sticky top-0 z-20 border-b border-[#d8d1c1] bg-[#fffdf8]">
+    <main className="riso-app min-h-screen bg-[#f2ede1] text-[#22201b]">
+      <header className="sticky top-0 z-20 border-b-2 border-[#22201b] bg-[#f2ede1]">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <Link
             aria-label="Back to main page"
-            className="inline-flex size-11 items-center justify-center border border-[#201f1b] hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+            className="riso-button size-11 p-0"
             href="/"
           >
             <ArrowLeftIcon />
           </Link>
           <div>
-            <h1 className="text-sm font-semibold uppercase">Strategy Game</h1>
-            <p className="text-sm text-[#5f5a4f]">
+            <h1 className="riso-mono text-sm font-semibold uppercase">
+              Strategy Game
+            </h1>
+            <p className="text-sm text-[#4a463c]">
               {strategyGameRemainingCount} of {site.strategies.length}{" "}
               strategies left this session.
             </p>
@@ -2991,7 +3150,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
       {clipboardMessage ? (
         <p
           aria-live="polite"
-          className="fixed inset-x-4 bottom-4 z-40 border border-[#201f1b] bg-[#fffdf8] px-3 py-2 text-sm font-medium shadow-sm"
+          className="riso-panel fixed inset-x-4 bottom-4 z-40 px-3 py-2 text-sm font-medium"
         >
           {clipboardMessage}
         </p>
@@ -3001,34 +3160,34 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
         {strategyGameComplete ? (
           <section>
             <h2 className="text-4xl font-semibold leading-tight">Good job!</h2>
-            <p className="mt-2 leading-7 text-[#5f5a4f]">
+            <p className="mt-2 leading-7 text-[#4a463c]">
               You completed {strategyGameEntries.length} strategy responses.
             </p>
 
             <div className="mt-5 grid gap-3">
               {strategyGameResponses.map(({ entry, strategy }, index) => (
                 <article
-                  className="border border-[#d8d1c1] bg-white p-3"
+                  className="riso-panel p-3"
                   key={`${entry.strategyId}-${index}`}
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="font-semibold leading-tight">
                       {strategy.title}
                     </h3>
-                    <p className="text-sm text-[#5f5a4f]">
+                    <p className="text-sm text-[#4a463c]">
                       {countCharacters(entry.response)} characters
                     </p>
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-[#5f5a4f]">
+                  <p className="mt-2 text-sm leading-6 text-[#4a463c]">
                     {entry.response}
                   </p>
                 </article>
               ))}
             </div>
 
-            <div className="sticky bottom-0 -mx-4 mt-6 grid gap-2 border-t border-[#d8d1c1] bg-[#fffdf8] p-4">
+            <div className="sticky bottom-0 -mx-4 mt-6 grid gap-2 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4">
               <button
-                className="border border-[#201f1b] px-3 py-3 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                className="riso-button"
                 disabled={!strategyGameCanCopy}
                 onClick={() => void copyStrategyGameMarkdown()}
                 type="button"
@@ -3036,7 +3195,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
                 Copy Markdown
               </button>
               <button
-                className="border border-[#315d4c] px-3 py-3 text-sm font-medium text-[#315d4c] hover:bg-[#315d4c] hover:text-[#fffdf8] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                className="riso-button"
                 disabled={!strategyGameCanStart}
                 onClick={startStrategyGame}
                 type="button"
@@ -3054,7 +3213,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
               <p
                 aria-live="polite"
                 className={`text-sm font-semibold ${
-                  strategyGameCanAdvance ? "text-[#315d4c]" : "text-[#5f5a4f]"
+                  strategyGameCanAdvance ? "text-[#315d4c]" : "text-[#4a463c]"
                 }`}
                 id="strategy-game-page-character-count"
               >
@@ -3063,12 +3222,17 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
               </p>
             </div>
 
-            <article className="mt-4 border border-[#d8d1c1] bg-white p-4">
+            <article
+              className="riso-panel mt-4 p-4"
+              style={strategyAccentStyle(currentStrategyGameStrategy)}
+            >
+              <div className="riso-card-strip -mx-4 -mt-4 mb-4" />
               <div className="flex flex-wrap gap-2">
                 {currentStrategyGameStrategy.tags.map((tag) => (
                   <span
-                    className="border border-[#d8d1c1] px-2 py-1 text-xs text-[#5f5a4f]"
+                    className="riso-tag"
                     key={tag}
+                    style={tagStyle(tag)}
                   >
                     {tag}
                   </span>
@@ -3077,11 +3241,11 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
               <h2 className="mt-4 text-2xl font-semibold leading-tight">
                 {currentStrategyGameStrategy.title}
               </h2>
-              <p className="mt-2 text-sm leading-6 text-[#5f5a4f]">
+              <p className="riso-body-copy mt-2 text-sm leading-6">
                 {currentStrategyGameStrategy.subtitle}
               </p>
               {currentStrategyGameStrategy.body.trim() ? (
-                <p className="mt-4 border-t border-[#d8d1c1] pt-4 text-sm leading-6 text-[#333029]">
+                <p className="mt-4 border-t border-[#22201b] pt-4 text-sm leading-6 text-[#333029]">
                   {currentStrategyGameStrategy.body}
                 </p>
               ) : null}
@@ -3093,7 +3257,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
               </span>
               <textarea
                 aria-describedby="strategy-game-page-character-count"
-                className="mt-2 min-h-44 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b]"
+                className="riso-input mt-2 min-h-44 w-full resize-y p-3 leading-6"
                 onChange={(event) =>
                   updateStrategyGameResponse(event.target.value)
                 }
@@ -3102,12 +3266,12 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
               />
             </label>
 
-            <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t border-[#d8d1c1] bg-[#fffdf8] p-4">
-              <p className="text-sm leading-6 text-[#5f5a4f]">
+            <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4">
+              <p className="text-sm leading-6 text-[#4a463c]">
                 The next prompt unlocks at 140 characters.
               </p>
               <button
-                className="border border-[#201f1b] px-3 py-3 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+                className="riso-button"
                 disabled={!strategyGameCanAdvance}
                 onClick={completeStrategyGameStep}
                 type="button"
@@ -3119,16 +3283,16 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
             </div>
           </section>
         ) : (
-          <section className="border border-[#d8d1c1] bg-[#fffdf8] p-4">
+          <section className="riso-panel p-4">
             <h2 className="text-2xl font-semibold leading-tight">
               Strategy Game
             </h2>
-            <p className="mt-2 text-sm leading-6 text-[#5f5a4f]">
+            <p className="mt-2 text-sm leading-6 text-[#4a463c]">
               Get up to three random strategies you haven&apos;t seen this
               session and write 140 characters about each one.
             </p>
             <button
-              className="mt-5 w-full border border-[#201f1b] px-3 py-3 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef] disabled:cursor-not-allowed disabled:border-[#c8c0ae] disabled:text-[#8a826f] disabled:hover:bg-transparent disabled:hover:text-[#8a826f]"
+              className="riso-button mt-5 w-full"
               disabled={!strategyGameCanStart}
               onClick={startStrategyGame}
               type="button"
@@ -3136,7 +3300,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
               Start Game
             </button>
             {!strategyGameCanStart ? (
-              <p className="mt-4 text-sm leading-6 text-[#5f5a4f]">
+              <p className="mt-4 text-sm leading-6 text-[#4a463c]">
                 No unseen strategies remain in this browser session.
               </p>
             ) : null}
@@ -3287,19 +3451,21 @@ export function ChecklistPage({ site }: StrategyExplorerProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f5ef] text-[#201f1b]">
-      <header className="sticky top-0 z-20 border-b border-[#d8d1c1] bg-[#fffdf8]">
+    <main className="riso-app min-h-screen bg-[#f2ede1] text-[#22201b]">
+      <header className="sticky top-0 z-20 border-b-2 border-[#22201b] bg-[#f2ede1]">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <Link
             aria-label="Back to main page"
-            className="inline-flex size-11 items-center justify-center border border-[#201f1b] hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+            className="riso-button size-11 p-0"
             href="/"
           >
             <ArrowLeftIcon />
           </Link>
           <div>
-            <h1 className="text-sm font-semibold uppercase">Checklist</h1>
-            <p className="text-sm text-[#5f5a4f]">
+            <h1 className="riso-mono text-sm font-semibold uppercase">
+              Checklist
+            </h1>
+            <p className="text-sm text-[#4a463c]">
               {cartStrategies.length} selected
             </p>
           </div>
@@ -3309,7 +3475,7 @@ export function ChecklistPage({ site }: StrategyExplorerProps) {
       {clipboardMessage ? (
         <p
           aria-live="polite"
-          className="fixed inset-x-4 bottom-4 z-40 border border-[#201f1b] bg-[#fffdf8] px-3 py-2 text-sm font-medium shadow-sm"
+          className="riso-panel fixed inset-x-4 bottom-4 z-40 px-3 py-2 text-sm font-medium"
         >
           {clipboardMessage}
         </p>
@@ -3317,11 +3483,11 @@ export function ChecklistPage({ site }: StrategyExplorerProps) {
 
       <div className="mx-auto max-w-3xl px-4 py-5">
         {cartStrategies.length === 0 ? (
-          <section className="border border-[#d8d1c1] bg-[#fffdf8] p-4">
+          <section className="riso-panel p-4">
             <h2 className="text-2xl font-semibold leading-tight">
               No strategies selected
             </h2>
-            <p className="mt-2 text-sm leading-6 text-[#5f5a4f]">
+            <p className="mt-2 text-sm leading-6 text-[#4a463c]">
               Add strategies from the main page, then come back here to fill in
               your checklist.
             </p>
@@ -3335,7 +3501,7 @@ export function ChecklistPage({ site }: StrategyExplorerProps) {
 
               return (
                 <article
-                  className="border border-[#d8d1c1] bg-[#fffdf8] p-4"
+                  className="riso-panel p-4"
                   key={strategy.id}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -3343,12 +3509,12 @@ export function ChecklistPage({ site }: StrategyExplorerProps) {
                       <h2 className="text-xl font-semibold leading-tight">
                         {strategy.title}
                       </h2>
-                      <p className="mt-1 text-sm leading-6 text-[#5f5a4f]">
+                      <p className="mt-1 text-sm leading-6 text-[#4a463c]">
                         {strategy.subtitle}
                       </p>
                     </div>
                     <button
-                      className="shrink-0 border border-[#c8c0ae] px-3 py-2 text-sm font-medium hover:border-[#201f1b]"
+                      className="riso-button shrink-0"
                       onClick={() => removeStrategyFromCart(strategy.id)}
                       type="button"
                     >
@@ -3363,7 +3529,7 @@ export function ChecklistPage({ site }: StrategyExplorerProps) {
                           {field.label}
                         </span>
                         <textarea
-                          className="mt-2 min-h-36 w-full resize-y border border-[#c8c0ae] bg-white p-3 leading-6 text-[#201f1b] outline-none focus:border-[#201f1b]"
+                          className="riso-input mt-2 min-h-36 w-full resize-y p-3 leading-6"
                           onChange={(event) =>
                             updateChecklistEntry(
                               strategy.id,
@@ -3384,9 +3550,9 @@ export function ChecklistPage({ site }: StrategyExplorerProps) {
       </div>
 
       {cartStrategies.length > 0 ? (
-        <div className="fixed inset-x-0 bottom-0 border-t border-[#d8d1c1] bg-[#fffdf8] p-4">
+        <div className="fixed inset-x-0 bottom-0 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4">
           <button
-            className="w-full border border-[#201f1b] px-3 py-3 text-sm font-medium hover:bg-[#201f1b] hover:text-[#f7f5ef]"
+            className="riso-button w-full"
             onClick={() => void copyCartMarkdown()}
             type="button"
           >

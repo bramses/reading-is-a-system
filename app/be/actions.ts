@@ -142,6 +142,7 @@ function formDataToSiteData(formData: FormData): SiteData {
     readingJournalYoutubeUrls: listFromText(
       blockValue(formData, "readingJournalYoutubeUrls"),
     ),
+    marqueeItems: listFromText(blockValue(formData, "marqueeItems")),
     strategies: [],
   };
 

@@ -28,6 +28,17 @@
     "https://www.youtube.com/watch?v=JMBV12cFbfw",
     "https://youtu.be/jIgqL9vYHr8?si=cu1-kiVFUpmuxuJv"
   ],
+  "marqueeItems": [
+    "Read widely",
+    "Read deeply",
+    "Build your cart",
+    "Start reading now",
+    "Play the strategy game",
+    "Copy your plan",
+    "Filter by tag",
+    "Drop the bad habits",
+    "Synthesize what you read"
+  ],
   "strategies": [
     {
       "id": "parallel-reading",

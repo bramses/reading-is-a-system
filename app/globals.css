@@ -1,19 +1,479 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/fonts/reading-system/220caecd-1e9d-4b87-8cd0-ad5d085290aa.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/reading-system/6f0bce75-937e-4627-bdc1-df991f56abe1.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/reading-system/abb7c7c3-7e60-429e-a32f-f5308b689053.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/reading-system/4276d42d-a892-47a4-91e5-1675a7349e4f.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/reading-system/dcb29fb5-e6d0-48bf-b7e0-c4ed043f9ede.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/reading-system/29b0f5bf-0eeb-404e-be1c-b52deb2cbe6d.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Spectral";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/reading-system/49a2bd9b-2786-48a4-bd0e-410f85dc9cf3.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Spectral";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/reading-system/66ad1a3d-4837-4be2-8c61-769f4c2c3c7b.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Spectral";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/reading-system/647d2d27-f05a-44d1-876e-72d2f10c02be.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Spectral";
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/reading-system/dde1dfbf-365e-4712-b067-446f2fc3e0d6.woff2")
+    format("woff2");
+}
+
 :root {
-  --background: #f7f5ef;
-  --foreground: #201f1b;
+  --background: #f2ede1;
+  --foreground: #22201b;
+  --paper: #f2ede1;
+  --paper-soft: #f8f4ea;
+  --ink: #22201b;
+  --muted: #4a463c;
+  --muted-soft: #a49c8a;
+  --accent: oklch(0.55 0.2 25);
+  --accent-soft: oklch(0.86 0.09 25);
+  --green: #315d4c;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "Bricolage Grotesque", Arial, Helvetica, sans-serif;
+  --font-serif: "Spectral", Georgia, serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: "Bricolage Grotesque", Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+.riso-app {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Bricolage Grotesque", Arial, Helvetica, sans-serif;
+}
+
+.riso-serif {
+  font-family: "Spectral", Georgia, serif;
+}
+
+.riso-italic {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.riso-mono {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.riso-topscroll {
+  scrollbar-width: none;
+}
+
+.riso-topscroll::-webkit-scrollbar {
+  height: 0;
+}
+
+.riso-nav-chip,
+.riso-nav-link {
+  align-items: center;
+  background: var(--paper-soft);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 rgba(34, 32, 27, 0.16);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  gap: 8px;
+  justify-content: center;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.riso-nav-link:hover {
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(34, 32, 27, 0.2);
+  color: var(--paper);
+  transform: translate(-1px, -1px);
+}
+
+.riso-nav-chip:hover {
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(34, 32, 27, 0.2);
+  color: var(--paper);
+  cursor: pointer;
+  transform: translate(-1px, -1px);
+}
+
+.riso-button.hidden,
+.riso-nav-chip.hidden,
+.riso-nav-link.hidden {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .riso-button.sm\:hidden,
+  .riso-nav-chip.sm\:hidden,
+  .riso-nav-link.sm\:hidden {
+    display: none;
+  }
+
+  .riso-button.sm\:inline-flex,
+  .riso-nav-chip.sm\:inline-flex,
+  .riso-nav-link.sm\:inline-flex {
+    display: inline-flex;
+  }
+}
+
+.riso-hero-kicker,
+.riso-section-kicker {
+  align-items: center;
+  color: var(--accent);
+  display: flex;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 10px;
+  text-transform: uppercase;
+}
+
+.riso-hero-kicker::before,
+.riso-section-kicker::before {
+  animation: riso-blink 1.2s steps(1) infinite;
+  background: var(--accent);
+  content: "";
+  display: inline-block;
+  height: 16px;
+  width: 9px;
+}
+
+.riso-hero-title {
+  animation: riso-rise-up 600ms both;
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 0.94;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .riso-hero-title {
+    font-size: 72px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .riso-hero-title {
+    font-size: 88px;
+  }
+}
+
+.riso-hero-accent {
+  color: var(--accent);
+  display: inline-block;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  position: relative;
+}
+
+.riso-hero-accent::before {
+  animation: riso-draw-line 900ms 500ms both cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: var(--accent-soft);
+  bottom: 0.09em;
+  content: "";
+  height: 0.18em;
+  left: -2px;
+  position: absolute;
+  right: -2px;
+  transform-origin: left;
+  z-index: 0;
+}
+
+.riso-hero-accent > span {
+  position: relative;
+  z-index: 1;
+}
+
+.riso-body-copy {
+  color: var(--muted);
+  font-family: "Spectral", Georgia, serif;
+}
+
+.riso-marquee {
+  background: var(--ink);
+  border-bottom: 2px solid var(--ink);
+  border-top: 2px solid var(--ink);
+  color: var(--paper);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.riso-marquee-track {
+  animation: riso-marquee 32s linear infinite;
+  display: inline-block;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 14px;
+  padding: 11px 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.riso-marquee:hover .riso-marquee-track {
+  animation-play-state: paused;
+}
+
+.riso-panel {
+  background: var(--paper-soft);
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.riso-button {
+  align-items: center;
+  background: var(--paper-soft);
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 rgba(34, 32, 27, 0.2);
+  display: inline-flex;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  justify-content: center;
+  padding: 10px 16px;
+  text-transform: uppercase;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.riso-button:hover {
+  background: var(--ink);
+  box-shadow: 5px 5px 0 rgba(34, 32, 27, 0.28);
+  color: var(--paper);
+  transform: translate(-2px, -2px);
+}
+
+.riso-button-primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.riso-button-primary:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.riso-button-active {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--paper-soft);
+}
+
+.riso-button-active:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.riso-button-dark {
+  background: var(--ink);
+  border-color: var(--paper);
+  color: var(--paper);
+}
+
+.riso-button-dark:hover {
+  background: var(--paper);
+  border-color: var(--paper);
+  color: var(--ink);
+}
+
+.riso-button:disabled {
+  background: transparent;
+  border-color: #c8c0ae;
+  box-shadow: none;
+  color: #8a826f;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.riso-tag {
+  background: var(--tag-color, var(--paper-soft));
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 rgba(34, 32, 27, 0.2);
+  color: var(--tag-ink, #ffffff);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 9px;
+  text-transform: uppercase;
+}
+
+.riso-card {
+  background: var(--paper-soft);
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.riso-card:hover {
+  box-shadow: 7px 7px 0 var(--ink);
+  transform: translate(-3px, -3px);
+}
+
+.riso-card-strip {
+  background: var(--strategy-accent, var(--accent));
+  border-bottom: 2px solid var(--ink);
+  height: 8px;
+}
+
+.riso-card-number {
+  color: #c3bba7;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 34px;
+  font-style: italic;
+  line-height: 0.8;
+}
+
+.riso-input {
+  background: #ffffff;
+  border: 2px solid #c8c0ae;
+  color: var(--ink);
+  outline: none;
+}
+
+.riso-input:focus {
+  border-color: var(--ink);
+}
+
+@keyframes riso-draw-line {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes riso-rise-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes riso-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes riso-blink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+
+  56%,
+  100% {
+    opacity: 0.15;
+  }
 }
 
 @keyframes strategy-game-confetti {
@@ -96,7 +556,7 @@ body {
   }
 
   .print-strategy-game {
-    color: #201f1b;
+    color: #22201b;
   }
 
   .print-strategy-game h1 {
@@ -114,7 +574,7 @@ body {
   .print-strategy-game-entry {
     margin-top: 0.28in;
     padding: 0.22in;
-    border: 2px solid #201f1b;
+    border: 2px solid #22201b;
     break-inside: avoid;
     page-break-inside: avoid;
   }

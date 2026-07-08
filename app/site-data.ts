@@ -101,6 +101,7 @@ function normalizeSiteData(value: unknown): SiteData {
       site.readingJournalYoutubeUrls,
       "readingJournalYoutubeUrls",
     ),
+    marqueeItems: readStringArray(site.marqueeItems, "marqueeItems"),
     strategies: site.strategies.map(readStrategy),
   };
 }
