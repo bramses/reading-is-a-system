@@ -2081,24 +2081,6 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               <DiscordIcon />
               Community
             </a>
-            <a
-              className="riso-nav-link"
-              href={site.links.slides}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <SlidesIcon />
-              Slides
-            </a>
-            <a
-              className="riso-nav-link"
-              href={site.links.github}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <GitHubIcon />
-              Star on GitHub
-            </a>
             <Link
               className="riso-nav-link"
               href="/reading-journal"
@@ -2139,6 +2121,24 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             >
               <CoffeeIcon />
               Support
+            </a>
+            <a
+              className="riso-nav-link"
+              href={site.links.slides}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <SlidesIcon />
+              Slides
+            </a>
+            <a
+              className="riso-nav-link"
+              href={site.links.github}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <GitHubIcon />
+              Star on GitHub
             </a>
             <Link
               aria-label={`Open checklist cart with ${cartStrategies.length} selected strategies`}
