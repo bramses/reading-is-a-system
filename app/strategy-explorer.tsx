@@ -2486,8 +2486,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             </div>
             {strategyGameCanDownload ? (
               <p className="mt-3 text-sm text-[#315d4c]">
-                Last game complete: {strategyGameEntries.length} responses
-                ready.
+                
               </p>
             ) : null}
           </div>
