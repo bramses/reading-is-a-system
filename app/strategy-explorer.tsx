@@ -2094,8 +2094,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                   Start Reading Right Now
                 </h3>
                 <p className="mt-1 text-sm leading-6 text-[#5f5a4f]">
-                  Each square represents 5 minutes. Click a square to choose
-                  how far to go.
+                  
                 </p>
               </div>
 
