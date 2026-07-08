@@ -571,6 +571,39 @@ function writeCartState(cartState: CartState) {
   cartStateListeners.forEach((listener) => listener());
 }
 
+function addStrategyIdToCart(
+  strategyById: Map<string, Strategy>,
+  strategyId: string,
+) {
+  const currentState = getClientCartSnapshot(strategyById);
+
+  writeCartState({
+    strategyIds: currentState.strategyIds.includes(strategyId)
+      ? currentState.strategyIds
+      : [...currentState.strategyIds, strategyId],
+    checklistEntries: {
+      ...currentState.checklistEntries,
+      [strategyId]:
+        currentState.checklistEntries[strategyId] ??
+        createBlankChecklistEntry(),
+    },
+  });
+}
+
+function removeStrategyIdFromCart(
+  strategyById: Map<string, Strategy>,
+  strategyId: string,
+) {
+  const currentState = getClientCartSnapshot(strategyById);
+
+  writeCartState({
+    ...currentState,
+    strategyIds: currentState.strategyIds.filter(
+      (currentId) => currentId !== strategyId,
+    ),
+  });
+}
+
 function writeReadingTimerState(timerState: ReadingTimerState) {
   readingTimerStateCache = normalizeReadingTimerState(timerState);
 
@@ -1355,30 +1388,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   }
 
   function addStrategyToCart(strategyId: string) {
-    const currentState = getClientCartSnapshot(strategyById);
-
-    writeCartState({
-      strategyIds: currentState.strategyIds.includes(strategyId)
-        ? currentState.strategyIds
-        : [...currentState.strategyIds, strategyId],
-      checklistEntries: {
-        ...currentState.checklistEntries,
-        [strategyId]:
-          currentState.checklistEntries[strategyId] ??
-          createBlankChecklistEntry(),
-      },
-    });
+    addStrategyIdToCart(strategyById, strategyId);
   }
 
   function removeStrategyFromCart(strategyId: string) {
-    const currentState = getClientCartSnapshot(strategyById);
-
-    writeCartState({
-      ...currentState,
-      strategyIds: currentState.strategyIds.filter(
-        (currentId) => currentId !== strategyId,
-      ),
-    });
+    removeStrategyIdFromCart(strategyById, strategyId);
   }
 
   function updateChecklistEntry(
@@ -2331,13 +2345,21 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
 
           <div className="riso-mono mt-5 grid gap-2 text-sm">
             {starterPackStrategies.length > 0 ? (
-              <button
-                className="text-left underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c]"
-                onClick={openStarterPack}
-                type="button"
-              >
-                + Unsure of where to start? Here&apos;s a starter pack.
-              </button>
+              <>
+                <Link
+                  className="text-left underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c] sm:hidden"
+                  href="/starter-pack"
+                >
+                  + Unsure of where to start? Here&apos;s a starter pack.
+                </Link>
+                <button
+                  className="hidden text-left underline decoration-[#8a826f] underline-offset-4 hover:text-[#315d4c] sm:block"
+                  onClick={openStarterPack}
+                  type="button"
+                >
+                  + Unsure of where to start? Here&apos;s a starter pack.
+                </button>
+              </>
             ) : null}
             <div className="grid justify-items-start gap-2">
               <button
@@ -3311,6 +3333,175 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
   );
 }
 
+export function StarterPackPage({ site }: StrategyExplorerProps) {
+  const strategyById = useMemo(
+    () =>
+      new Map(
+        site.strategies.map((strategy) => [strategy.id, strategy] as const),
+      ),
+    [site.strategies],
+  );
+  const cartState = useSyncExternalStore(
+    subscribeToCartState,
+    () => getClientCartSnapshot(strategyById),
+    getServerCartSnapshot,
+  );
+  const starterPackStrategies = useMemo(
+    () =>
+      site.starterPackStrategyIds
+        .map((strategyId) => strategyById.get(strategyId))
+        .filter((strategy): strategy is Strategy => Boolean(strategy)),
+    [site.starterPackStrategyIds, strategyById],
+  );
+
+  function toggleStrategyCart(strategyId: string) {
+    if (cartState.strategyIds.includes(strategyId)) {
+      removeStrategyIdFromCart(strategyById, strategyId);
+      return;
+    }
+
+    addStrategyIdToCart(strategyById, strategyId);
+  }
+
+  return (
+    <main className="riso-app min-h-screen bg-[#f2ede1] text-[#22201b]">
+      <header className="sticky top-0 z-20 border-b-2 border-[#22201b] bg-[#f2ede1]">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
+          <Link
+            aria-label="Back to main page"
+            className="riso-button size-11 p-0"
+            href="/"
+          >
+            <ArrowLeftIcon />
+          </Link>
+          <div>
+            <h1 className="riso-mono text-sm font-semibold uppercase">
+              Starter Pack
+            </h1>
+            <p className="text-sm text-[#4a463c]">
+              {starterPackStrategies.length} recommended strategies
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-3xl px-4 py-5">
+        {starterPackStrategies.length === 0 ? (
+          <section className="riso-panel p-4">
+            <h2 className="text-2xl font-semibold leading-tight">
+              No starter pack strategies
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#4a463c]">
+              Add starter strategy IDs in the editor to populate this page.
+            </p>
+          </section>
+        ) : (
+          <section className="grid gap-4 pb-28">
+            {starterPackStrategies.map((strategy, index) => {
+              const inCart = cartState.strategyIds.includes(strategy.id);
+              const linkGroups = strategyLinkGroups(strategy);
+
+              return (
+                <article
+                  className="riso-panel overflow-hidden"
+                  key={strategy.id}
+                  style={strategyAccentStyle(strategy)}
+                >
+                  <div className="riso-card-strip" />
+                  {strategy.imageUrls[0] ? (
+                    <img
+                      alt={`${strategy.title} image`}
+                      className="block max-h-64 w-full border-b-2 border-[#22201b] object-cover"
+                      loading="lazy"
+                      src={strategy.imageUrls[0]}
+                    />
+                  ) : null}
+                  <div className="p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="riso-card-number">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      {strategy.tags.map((tag) => (
+                        <span
+                          className="riso-tag"
+                          key={tag}
+                          style={tagStyle(tag)}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <h2 className="mt-4 text-2xl font-semibold leading-tight">
+                      {strategy.title}
+                    </h2>
+                    <p className="riso-body-copy mt-2 text-sm leading-6">
+                      {strategy.subtitle}
+                    </p>
+                    {strategy.body.trim() ? (
+                      <p className="mt-4 border-t border-[#22201b] pt-4 text-sm leading-6 text-[#333029]">
+                        {strategy.body}
+                      </p>
+                    ) : null}
+
+                    {linkGroups.length > 0 ? (
+                      <div className="mt-5 grid gap-4">
+                        {linkGroups.map((group) => (
+                          <div key={group.title}>
+                            <h3 className="text-sm font-semibold uppercase">
+                              {group.title}
+                            </h3>
+                            <ul className="mt-2 space-y-2 text-sm">
+                              {group.links.map((link) => (
+                                <li key={link.url}>
+                                  <a
+                                    className="underline decoration-[#8a826f] underline-offset-4"
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {link.label}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    <button
+                      aria-pressed={inCart}
+                      className={`riso-button mt-5 w-full gap-2 ${
+                        inCart ? "riso-button-active" : "text-[#315d4c]"
+                      }`}
+                      onClick={() => toggleStrategyCart(strategy.id)}
+                      type="button"
+                    >
+                      <CartIcon selected={inCart} />
+                      {inCart ? "Remove from cart" : "Add to cart"}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        )}
+      </div>
+
+      {cartState.strategyIds.length > 0 ? (
+        <div className="fixed inset-x-0 bottom-0 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4">
+          <Link
+            className="riso-button w-full"
+            href="/checklist"
+          >
+            Open cart ({cartState.strategyIds.length})
+          </Link>
+        </div>
+      ) : null}
+    </main>
+  );
+}
+
 export function ChecklistPage({ site }: StrategyExplorerProps) {
   const strategyById = useMemo(
     () =>
@@ -3450,6 +3641,22 @@ export function ChecklistPage({ site }: StrategyExplorerProps) {
     });
   }
 
+  function clearCart() {
+    if (cartStrategies.length === 0) {
+      return;
+    }
+
+    const shouldClear = window.confirm(
+      "Clear all selected strategies and checklist notes?",
+    );
+
+    if (!shouldClear) {
+      return;
+    }
+
+    writeCartState(createBlankCartState());
+  }
+
   return (
     <main className="riso-app min-h-screen bg-[#f2ede1] text-[#22201b]">
       <header className="sticky top-0 z-20 border-b-2 border-[#22201b] bg-[#f2ede1]">
@@ -3551,13 +3758,22 @@ export function ChecklistPage({ site }: StrategyExplorerProps) {
 
       {cartStrategies.length > 0 ? (
         <div className="fixed inset-x-0 bottom-0 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4">
-          <button
-            className="riso-button w-full"
-            onClick={() => void copyCartMarkdown()}
-            type="button"
-          >
-            Copy Markdown
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              className="riso-button w-full"
+              onClick={() => void copyCartMarkdown()}
+              type="button"
+            >
+              Copy Markdown
+            </button>
+            <button
+              className="riso-button w-full"
+              onClick={clearCart}
+              type="button"
+            >
+              Clear Cart
+            </button>
+          </div>
         </div>
       ) : null}
     </main>
