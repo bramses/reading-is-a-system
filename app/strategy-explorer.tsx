@@ -2013,7 +2013,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b-2 border-[#22201b] bg-[#f8f4ea] p-4 sm:static sm:p-5">
               <div>
                 <p className="riso-mono text-sm font-semibold uppercase">
-                  Don&apos;t Overthink It! Strategy Game
+                  Don&apos;t Overthink It!
                 </p>
                 <p className="mt-1 text-sm leading-6 text-[#4a463c]">
                 </p>
