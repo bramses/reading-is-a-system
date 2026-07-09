@@ -438,6 +438,43 @@ a {
   line-height: 0.8;
 }
 
+.riso-writing-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.riso-writing-pill {
+  align-items: center;
+  background: var(--paper-soft);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 rgba(34, 32, 27, 0.18);
+  color: var(--ink);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  justify-content: center;
+  line-height: 1;
+  min-height: 34px;
+  padding: 8px 12px;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.riso-writing-pill:hover,
+.riso-writing-pill:focus-visible {
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(34, 32, 27, 0.24);
+  color: var(--paper);
+  transform: translate(-1px, -1px);
+}
+
 .riso-input {
   background: #ffffff;
   border: 2px solid #c8c0ae;

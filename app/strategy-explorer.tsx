@@ -75,6 +75,32 @@ const READING_TIMER_BLOCK_MINUTES = 5;
 const READING_TIMER_BLOCK_MS = READING_TIMER_BLOCK_MINUTES * 60 * 1000;
 const STRATEGY_GAME_ROUND_COUNT = 3;
 const STRATEGY_GAME_CHARACTER_GOAL = 140;
+const STRATEGY_GAME_PROMPT_WORDS = [
+  "curious",
+  "absorbed",
+  "skeptical",
+  "restless",
+  "hopeful",
+  "confused",
+  "delighted",
+  "frustrated",
+  "unsettled",
+  "nostalgic",
+  "reflective",
+  "surprised",
+  "fiction",
+  "nonfiction",
+  "memoir",
+  "essay",
+  "poetry",
+  "history",
+  "theory",
+  "biography",
+  "fantasy",
+  "sci-fi",
+  "argument",
+  "characters",
+] as const;
 const STRATEGY_ROW_MIN_WEIGHT = 44;
 const STRATEGY_ROW_MAX_WEIGHT = 56;
 const STRATEGY_GAME_CONFETTI_COLORS = [
@@ -172,6 +198,26 @@ function createBlankStrategyGameState(): StrategyGameState {
 
 function countCharacters(value: string) {
   return value.trim().length;
+}
+
+function appendPromptWord(response: string, word: string) {
+  const trimmedResponse = response.trimEnd();
+
+  if (trimmedResponse.length === 0) {
+    return `${word} `;
+  }
+
+  return `${trimmedResponse} ${word} `;
+}
+
+function focusTextareaAtEnd(
+  textarea: HTMLTextAreaElement | null,
+  valueLength: number,
+) {
+  window.requestAnimationFrame(() => {
+    textarea?.focus();
+    textarea?.setSelectionRange(valueLength, valueLength);
+  });
 }
 
 function formatExportTimestamp(date = new Date()) {
@@ -979,6 +1025,32 @@ function CartIcon({ selected = false }: { selected?: boolean }) {
   );
 }
 
+function StrategyGamePromptPills({
+  onSelect,
+}: {
+  onSelect: (word: string) => void;
+}) {
+  return (
+    <div
+      aria-label="Writing starter words"
+      className="riso-writing-pills mt-3"
+      role="group"
+    >
+      {STRATEGY_GAME_PROMPT_WORDS.map((word) => (
+        <button
+          aria-label={`Add ${word}`}
+          className="riso-writing-pill"
+          key={word}
+          onClick={() => onSelect(word)}
+          type="button"
+        >
+          {word}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const tags = site.tags;
   const marqueeItems = site.marqueeItems.length > 0 ? site.marqueeItems : tags;
@@ -1009,6 +1081,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const [clipboardMessage, setClipboardMessage] = useState<string | null>(null);
   const printTitleRestoreRef = useRef<string | null>(null);
   const clipboardMessageTimeoutRef = useRef<number | null>(null);
+  const strategyGameTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [, forceStrategyShuffleRender] = useState(0);
   const readingTimerState = useSyncExternalStore(
     subscribeToReadingTimerState,
@@ -1515,6 +1588,17 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         index === strategyGameIndex ? { ...entry, response: value } : entry,
       ),
     });
+  }
+
+  function addStrategyGamePromptWord(word: string) {
+    if (!currentStrategyGameEntry) {
+      return;
+    }
+
+    const nextResponse = appendPromptWord(currentStrategyGameEntry.response, word);
+
+    updateStrategyGameResponse(nextResponse);
+    focusTextareaAtEnd(strategyGameTextareaRef.current, nextResponse.length);
   }
 
   function markCompletedStrategyGameEntriesSeen() {
@@ -2060,9 +2144,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                       updateStrategyGameResponse(event.target.value)
                     }
                     placeholder="Write how you will implement this strategy, or what you think about it."
+                    ref={strategyGameTextareaRef}
                     value={currentStrategyGameEntry.response}
                   />
                 </label>
+                <StrategyGamePromptPills onSelect={addStrategyGamePromptWord} />
 
                 <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4 sm:static sm:mx-0 sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:p-0">
                   <p className="text-sm leading-6 text-[#4a463c]">
@@ -2983,6 +3069,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [clipboardMessage, setClipboardMessage] = useState<string | null>(null);
   const clipboardMessageTimeoutRef = useRef<number | null>(null);
+  const strategyGameTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const strategyGameEntries = strategyGameState.entries;
   const strategyGameIndex = strategyGameState.index;
   const strategyGameSeenCount = strategyGameSeenIds.length;
@@ -3147,6 +3234,17 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
         index === strategyGameIndex ? { ...entry, response: value } : entry,
       ),
     });
+  }
+
+  function addStrategyGamePromptWord(word: string) {
+    if (!currentStrategyGameEntry) {
+      return;
+    }
+
+    const nextResponse = appendPromptWord(currentStrategyGameEntry.response, word);
+
+    updateStrategyGameResponse(nextResponse);
+    focusTextareaAtEnd(strategyGameTextareaRef.current, nextResponse.length);
   }
 
   function markCompletedStrategyGameEntriesSeen() {
@@ -3333,9 +3431,11 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
                   updateStrategyGameResponse(event.target.value)
                 }
                 placeholder="Write how you will implement this strategy, or what you think about it."
+                ref={strategyGameTextareaRef}
                 value={currentStrategyGameEntry.response}
               />
             </label>
+            <StrategyGamePromptPills onSelect={addStrategyGamePromptWord} />
 
             <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4">
               <p className="text-sm leading-6 text-[#4a463c]">
