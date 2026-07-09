@@ -18,6 +18,17 @@ type StrategyExplorerProps = {
   site: SiteData;
 };
 
+type StrategyListRowItem = {
+  index: number;
+  strategy: Strategy;
+};
+
+type StrategyListRow = {
+  columns?: string;
+  id: string;
+  items: StrategyListRowItem[];
+};
+
 type ChecklistField = "whereNow" | "goal";
 
 type ChecklistEntry = Record<ChecklistField, string>;
@@ -64,6 +75,8 @@ const READING_TIMER_BLOCK_MINUTES = 5;
 const READING_TIMER_BLOCK_MS = READING_TIMER_BLOCK_MINUTES * 60 * 1000;
 const STRATEGY_GAME_ROUND_COUNT = 3;
 const STRATEGY_GAME_CHARACTER_GOAL = 140;
+const STRATEGY_ROW_MIN_WEIGHT = 44;
+const STRATEGY_ROW_MAX_WEIGHT = 56;
 const STRATEGY_GAME_CONFETTI_COLORS = [
   "#315d4c",
   "#b64f3a",
@@ -192,6 +205,88 @@ function strategyAccentStyle(
   return {
     "--strategy-accent": strategyAccentColor(strategy),
   };
+}
+
+function seededUnitInterval(seed: string) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0) / 4294967295;
+}
+
+function strategyRowColumns(
+  firstStrategy: Strategy,
+  secondStrategy: Strategy,
+  rowIndex: number,
+) {
+  const weightRange = STRATEGY_ROW_MAX_WEIGHT - STRATEGY_ROW_MIN_WEIGHT;
+  const firstWeight =
+    STRATEGY_ROW_MIN_WEIGHT +
+    seededUnitInterval(`${rowIndex}:${firstStrategy.id}:${secondStrategy.id}`) *
+      weightRange;
+  const roundedFirstWeight = Math.round(firstWeight * 10) / 10;
+  const roundedSecondWeight = Math.round((100 - roundedFirstWeight) * 10) / 10;
+
+  return `minmax(0, ${roundedFirstWeight}fr) minmax(0, ${roundedSecondWeight}fr)`;
+}
+
+function strategyRowStyle(
+  columns: string,
+): CSSProperties & Record<"--strategy-row-columns", string> {
+  return {
+    "--strategy-row-columns": columns,
+  };
+}
+
+function createStrategyRows(strategies: Strategy[]): StrategyListRow[] {
+  const rows: StrategyListRow[] = [];
+  let index = 0;
+
+  while (index < strategies.length) {
+    const firstStrategy = strategies[index];
+
+    if (!firstStrategy) {
+      break;
+    }
+
+    if (index % 5 === 0) {
+      rows.push({
+        id: firstStrategy.id,
+        items: [{ index, strategy: firstStrategy }],
+      });
+      index += 1;
+      continue;
+    }
+
+    const secondStrategy = strategies[index + 1];
+    const rowItems: StrategyListRowItem[] = [
+      { index, strategy: firstStrategy },
+    ];
+
+    if (secondStrategy && (index + 1) % 5 !== 0) {
+      rowItems.push({ index: index + 1, strategy: secondStrategy });
+    }
+
+    rows.push({
+      columns:
+        rowItems.length === 2
+          ? strategyRowColumns(
+              rowItems[0].strategy,
+              rowItems[1].strategy,
+              rows.length,
+            )
+          : undefined,
+      id: rowItems.map((item) => item.strategy.id).join("--"),
+      items: rowItems,
+    });
+    index += rowItems.length;
+  }
+
+  return rows;
 }
 
 function tagStyle(
@@ -766,27 +861,6 @@ function GitHubIcon() {
   );
 }
 
-function SlidesIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-4 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M4 5h16v11H4z" />
-      <path d="M8 20h8" />
-      <path d="M12 16v4" />
-      <path d="M8 9h8" />
-      <path d="M8 12h5" />
-    </svg>
-  );
-}
-
 function VideoIcon() {
   return (
     <svg
@@ -824,23 +898,6 @@ function CalendarIcon() {
       <path d="M8 14h.01" />
       <path d="M12 14h.01" />
       <path d="M16 14h.01" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-4 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="m6 9 6 6 6-6" />
     </svg>
   );
 }
@@ -1218,6 +1275,11 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
       activeTags.some((tag) => strategy.tags.includes(tag)),
     );
   }, [activeTags, shuffledStrategyOrder]);
+
+  const strategyRows = useMemo(
+    () => createStrategyRows(filteredStrategies),
+    [filteredStrategies],
+  );
 
   function toggleTag(tag: string) {
     setActiveTags((currentTags) =>
@@ -2107,31 +2169,15 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
               <VideoIcon />
               Reading Journal
             </Link>
-            <details className="group relative flex-none">
-              <summary className="riso-nav-link cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                <CalendarIcon />
-                Talk to Bram
-                <ChevronDownIcon />
-              </summary>
-              <div className="fixed right-4 top-16 z-[90] grid w-72 border-2 border-[#22201b] bg-[#f8f4ea] text-[#22201b] shadow-[4px_4px_0_#22201b] sm:right-8 lg:right-10">
-                <a
-                  className="px-3 py-3 hover:bg-[#22201b] hover:text-[#f2ede1]"
-                  href={site.links.schedule}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  1:1 meeting
-                </a>
-                <a
-                  className="border-t border-[#22201b] px-3 py-3 hover:bg-[#22201b] hover:text-[#f2ede1]"
-                  href={site.links.bookClub}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  1:n meeting (book club)
-                </a>
-              </div>
-            </details>
+            <a
+              className="riso-nav-link"
+              href={site.links.bookClub}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <CalendarIcon />
+              Talk to Bram
+            </a>
             <a
               className="riso-nav-link"
               href={site.links.kofi}
@@ -2143,21 +2189,12 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             </a>
             <a
               className="riso-nav-link"
-              href={site.links.slides}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <SlidesIcon />
-              Slides
-            </a>
-            <a
-              className="riso-nav-link"
               href={site.links.github}
               target="_blank"
               rel="noreferrer"
             >
               <GitHubIcon />
-              Star on GitHub
+              Star
             </a>
             <Link
               aria-label={`Open checklist cart with ${cartStrategies.length} selected strategies`}
@@ -2680,231 +2717,239 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
           </button>
         </div>
 
-        <section className="grid gap-5 md:grid-cols-2 print:hidden">
-          {filteredStrategies.map((strategy, index) => {
-            const expanded = expandedId === strategy.id;
-            const shouldPulseDetailsButton =
-              index === 0 && !detailsButtonInteracted && !expanded;
-            const inCart = cartStrategyIds.includes(strategy.id);
-            const strategyNumber = String(index + 1).padStart(2, "0");
-            const pairedStrategies = strategy.pairedWithIds
-              .map((strategyId) => strategyById.get(strategyId))
-              .filter((pairedStrategy): pairedStrategy is Strategy =>
-                Boolean(pairedStrategy),
-              );
-            const linkGroups = strategyLinkGroups(strategy);
+        <section className="flex flex-col gap-5 print:hidden">
+          {strategyRows.map((row) => (
+            <div
+              className={`riso-strategy-row ${
+                row.items.length === 2 ? "riso-strategy-row-pair" : ""
+              }`}
+              key={row.id}
+              style={row.columns ? strategyRowStyle(row.columns) : undefined}
+            >
+              {row.items.map(({ strategy, index }) => {
+                const expanded = expandedId === strategy.id;
+                const shouldPulseDetailsButton =
+                  index === 0 && !detailsButtonInteracted && !expanded;
+                const inCart = cartStrategyIds.includes(strategy.id);
+                const strategyNumber = String(index + 1).padStart(2, "0");
+                const pairedStrategies = strategy.pairedWithIds
+                  .map((strategyId) => strategyById.get(strategyId))
+                  .filter((pairedStrategy): pairedStrategy is Strategy =>
+                    Boolean(pairedStrategy),
+                  );
+                const linkGroups = strategyLinkGroups(strategy);
 
-            return (
-              <article
-                className={`riso-card scroll-mt-24 overflow-hidden ${
-                  index % 5 === 0 ? "md:col-span-2" : ""
-                }`}
-                id={`strategy-${strategy.id}`}
-                key={strategy.id}
-                style={strategyAccentStyle(strategy)}
-              >
-                {strategy.imageUrls[0] ? (
-                  <button
-                    aria-label={`Open ${strategy.title} image 1`}
-                    className="relative block h-48 w-full cursor-zoom-in overflow-hidden border-b-2 border-[#22201b] bg-[#f2ede1] text-left sm:h-56"
-                    onClick={() =>
-                      setLightboxImage({
-                        alt: `${strategy.title} image 1`,
-                        url: strategy.imageUrls[0],
-                      })
-                    }
-                    type="button"
+                return (
+                  <article
+                    className="riso-card scroll-mt-24 overflow-hidden"
+                    id={`strategy-${strategy.id}`}
+                    key={strategy.id}
+                    style={strategyAccentStyle(strategy)}
                   >
-                    <img
-                      alt={`${strategy.title} image 1`}
-                      className="block h-full w-full object-cover"
-                      loading="lazy"
-                      src={strategy.imageUrls[0]}
-                    />
-                    <span className="riso-mono absolute bottom-3 left-3 bg-[#f8f4ea] px-2 py-1 text-[10px] uppercase text-[#7a7466]">
-                      Strategy image
-                    </span>
-                    <span className="riso-italic absolute right-3 top-2 text-6xl text-[#22201b]">
-                      {strategyNumber}
-                    </span>
-                  </button>
-                ) : (
-                  <div className="riso-card-strip" />
-                )}
-                <div className="p-4 sm:p-5">
-                  <div>
-                    <span className="mb-3 flex flex-wrap gap-2">
-                      {strategy.tags.map((tag) => (
-                        <span
-                          className="riso-tag"
-                          key={tag}
-                          style={tagStyle(tag)}
-                        >
-                          {tag}
+                    {strategy.imageUrls[0] ? (
+                      <button
+                        aria-label={`Open ${strategy.title} image 1`}
+                        className="relative block h-48 w-full cursor-zoom-in overflow-hidden border-b-2 border-[#22201b] bg-[#f2ede1] text-left sm:h-56"
+                        onClick={() =>
+                          setLightboxImage({
+                            alt: `${strategy.title} image 1`,
+                            url: strategy.imageUrls[0],
+                          })
+                        }
+                        type="button"
+                      >
+                        <img
+                          alt={`${strategy.title} image 1`}
+                          className="block h-full w-full object-cover"
+                          loading="lazy"
+                          src={strategy.imageUrls[0]}
+                        />
+                        <span className="riso-mono absolute bottom-3 left-3 bg-[#f8f4ea] px-2 py-1 text-[10px] uppercase text-[#7a7466]">
+                          Strategy image
                         </span>
-                      ))}
-                      {strategy.tags.length === 0 ? (
-                        <span className="riso-card-number">
+                        <span className="riso-italic absolute right-3 top-2 text-6xl text-[#22201b]">
                           {strategyNumber}
                         </span>
-                      ) : null}
-                    </span>
-                    <h3 className="text-2xl font-bold leading-tight">
-                      {strategy.title}
-                    </h3>
-                    <p className="riso-body-copy mt-2 leading-7">
-                      {strategy.subtitle}
-                    </p>
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <button
-                      aria-expanded={expanded}
-                      className={`riso-button ${
-                        shouldPulseDetailsButton
-                          ? "motion-safe:animate-pulse shadow-[0_0_0_2px_#315d4c]"
-                          : ""
-                      }`}
-                      onClick={() => toggleStrategyDetails(strategy.id)}
-                      type="button"
-                    >
-                      {expanded ? "Hide details" : "View details"}
-                    </button>
-                    <button
-                      aria-label={
-                        inCart
-                          ? `Remove ${strategy.title} from cart`
-                          : `Add ${strategy.title} to cart`
-                      }
-                      aria-pressed={inCart}
-                      className={`riso-button size-10 p-0 ${
-                        inCart
-                          ? "riso-button-active"
-                          : "border-[#315d4c] text-[#315d4c]"
-                      }`}
-                      onClick={() =>
-                        inCart
-                          ? removeStrategyFromCart(strategy.id)
-                          : addStrategyToCart(strategy.id)
-                      }
-                      title={inCart ? "Remove from cart" : "Add to cart"}
-                      type="button"
-                    >
-                      <CartIcon selected={inCart} />
-                    </button>
-                  </div>
-                </div>
-
-                {expanded ? (
-                  <div className="border-t-2 border-dashed border-[#22201b]/30 px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
-                    <p className="riso-body-copy max-w-prose leading-7 text-[#333029]">
-                      {strategy.body}
-                    </p>
-
-                    {strategy.imageUrls.length > 0 ? (
-                      <div className="mt-5">
-                        <h3 className="text-sm font-semibold uppercase">
-                          Images
+                      </button>
+                    ) : (
+                      <div className="riso-card-strip" />
+                    )}
+                    <div className="p-4 sm:p-5">
+                      <div>
+                        <span className="mb-3 flex flex-wrap gap-2">
+                          {strategy.tags.map((tag) => (
+                            <span
+                              className="riso-tag"
+                              key={tag}
+                              style={tagStyle(tag)}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {strategy.tags.length === 0 ? (
+                            <span className="riso-card-number">
+                              {strategyNumber}
+                            </span>
+                          ) : null}
+                        </span>
+                        <h3 className="text-2xl font-bold leading-tight">
+                          {strategy.title}
                         </h3>
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                          {strategy.imageUrls.map((url, index) => {
-                            const imageAlt = `${strategy.title} image ${
-                              index + 1
-                            }`;
+                        <p className="riso-body-copy mt-2 leading-7">
+                          {strategy.subtitle}
+                        </p>
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          aria-expanded={expanded}
+                          className={`riso-button ${
+                            shouldPulseDetailsButton
+                              ? "motion-safe:animate-pulse shadow-[0_0_0_2px_#315d4c]"
+                              : ""
+                          }`}
+                          onClick={() => toggleStrategyDetails(strategy.id)}
+                          type="button"
+                        >
+                          {expanded ? "Hide details" : "View details"}
+                        </button>
+                        <button
+                          aria-label={
+                            inCart
+                              ? `Remove ${strategy.title} from cart`
+                              : `Add ${strategy.title} to cart`
+                          }
+                          aria-pressed={inCart}
+                          className={`riso-button size-10 p-0 ${
+                            inCart
+                              ? "riso-button-active"
+                              : "border-[#315d4c] text-[#315d4c]"
+                          }`}
+                          onClick={() =>
+                            inCart
+                              ? removeStrategyFromCart(strategy.id)
+                              : addStrategyToCart(strategy.id)
+                          }
+                          title={inCart ? "Remove from cart" : "Add to cart"}
+                          type="button"
+                        >
+                          <CartIcon selected={inCart} />
+                        </button>
+                      </div>
+                    </div>
 
-                            return (
-                              <button
-                                aria-label={`Open ${imageAlt}`}
-                                className="block w-full cursor-zoom-in border border-[#22201b] bg-[#f2ede1]"
-                                key={url}
-                                onClick={() =>
-                                  setLightboxImage({ alt: imageAlt, url })
-                                }
-                                type="button"
-                              >
-                                <img
-                                  alt={imageAlt}
-                                  className="block aspect-[4/3] w-full object-cover"
-                                  loading="lazy"
-                                  src={url}
-                                />
-                              </button>
-                            );
-                          })}
+                    {expanded ? (
+                      <div className="border-t-2 border-dashed border-[#22201b]/30 px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
+                        <p className="riso-body-copy max-w-prose leading-7 text-[#333029]">
+                          {strategy.body}
+                        </p>
+
+                        {strategy.imageUrls.length > 0 ? (
+                          <div className="mt-5">
+                            <h3 className="text-sm font-semibold uppercase">
+                              Images
+                            </h3>
+                            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                              {strategy.imageUrls.map((url, index) => {
+                                const imageAlt = `${strategy.title} image ${
+                                  index + 1
+                                }`;
+
+                                return (
+                                  <button
+                                    aria-label={`Open ${imageAlt}`}
+                                    className="block w-full cursor-zoom-in border border-[#22201b] bg-[#f2ede1]"
+                                    key={url}
+                                    onClick={() =>
+                                      setLightboxImage({ alt: imageAlt, url })
+                                    }
+                                    type="button"
+                                  >
+                                    <img
+                                      alt={imageAlt}
+                                      className="block aspect-[4/3] w-full object-cover"
+                                      loading="lazy"
+                                      src={url}
+                                    />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : null}
+
+                        <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                          {linkGroups.slice(0, 1).map((group) => (
+                            <div key={group.title}>
+                              <h3 className="text-sm font-semibold uppercase">
+                                {group.title}
+                              </h3>
+                              <ul className="mt-3 space-y-2 text-sm">
+                                {group.links.map((link) => (
+                                  <li key={link.url}>
+                                    <a
+                                      className="underline decoration-[#8a826f] underline-offset-4"
+                                      href={link.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      {link.label}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                          {pairedStrategies.length > 0 ? (
+                            <div>
+                              <h3 className="text-sm font-semibold uppercase">
+                                Paired with
+                              </h3>
+                              <ul className="mt-3 space-y-2 text-sm">
+                                {pairedStrategies.map((pairedStrategy) => (
+                                  <li key={pairedStrategy.id}>
+                                    <button
+                                      className="text-left underline decoration-[#8a826f] underline-offset-4"
+                                      onClick={() =>
+                                        moveToStrategy(pairedStrategy.id)
+                                      }
+                                      type="button"
+                                    >
+                                      {pairedStrategy.title}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                          {linkGroups.slice(1).map((group) => (
+                            <div key={group.title}>
+                              <h3 className="text-sm font-semibold uppercase">
+                                {group.title}
+                              </h3>
+                              <ul className="mt-3 space-y-2 text-sm">
+                                {group.links.map((link) => (
+                                  <li key={link.url}>
+                                    <a
+                                      className="underline decoration-[#8a826f] underline-offset-4"
+                                      href={link.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      {link.label}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ) : null}
-
-                    <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                      {linkGroups.slice(0, 1).map((group) => (
-                        <div key={group.title}>
-                          <h3 className="text-sm font-semibold uppercase">
-                            {group.title}
-                          </h3>
-                          <ul className="mt-3 space-y-2 text-sm">
-                            {group.links.map((link) => (
-                              <li key={link.url}>
-                                <a
-                                  className="underline decoration-[#8a826f] underline-offset-4"
-                                  href={link.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  {link.label}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                      {pairedStrategies.length > 0 ? (
-                        <div>
-                          <h3 className="text-sm font-semibold uppercase">
-                            Paired with
-                          </h3>
-                          <ul className="mt-3 space-y-2 text-sm">
-                            {pairedStrategies.map((pairedStrategy) => (
-                              <li key={pairedStrategy.id}>
-                                <button
-                                  className="text-left underline decoration-[#8a826f] underline-offset-4"
-                                  onClick={() =>
-                                    moveToStrategy(pairedStrategy.id)
-                                  }
-                                  type="button"
-                                >
-                                  {pairedStrategy.title}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-                      {linkGroups.slice(1).map((group) => (
-                        <div key={group.title}>
-                          <h3 className="text-sm font-semibold uppercase">
-                            {group.title}
-                          </h3>
-                          <ul className="mt-3 space-y-2 text-sm">
-                            {group.links.map((link) => (
-                              <li key={link.url}>
-                                <a
-                                  className="underline decoration-[#8a826f] underline-offset-4"
-                                  href={link.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  {link.label}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
+                  </article>
+                );
+              })}
+            </div>
+          ))}
         </section>
 
         {filteredStrategies.length === 0 ? (

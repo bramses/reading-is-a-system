@@ -7,7 +7,7 @@ A Vercel-deployable Next.js site for a small JSON-backed strategy library.
 The site content is in `app/data/site.json`.
 
 - `title` and `subtitle` control the page heading.
-- `links.newsletter`, `links.slides`, `links.github`, `links.schedule`, `links.bookClub`, and `links.kofi` control the top links.
+- `links.newsletter`, `links.bookClub`, `links.github`, and `links.kofi` control the top links.
 - `tags` controls the checkbox filters and display order.
 - `starterPackStrategyIds` controls the starter pack lightbox order.
 - `strategies` controls the filterable cards.

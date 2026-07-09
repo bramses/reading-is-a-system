@@ -407,6 +407,23 @@ a {
   transform: translate(-3px, -3px);
 }
 
+.riso-strategy-row {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .riso-strategy-row-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .riso-strategy-row-pair {
+    grid-template-columns: var(--strategy-row-columns);
+  }
+}
+
 .riso-card-strip {
   background: var(--strategy-accent, var(--accent));
   border-bottom: 2px solid var(--ink);
