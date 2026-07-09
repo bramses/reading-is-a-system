@@ -2002,12 +2002,12 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
         <div
           aria-label="Strategy Game"
           aria-modal="true"
-          className="fixed inset-0 z-50 bg-[#f2ede1] print:hidden sm:flex sm:items-center sm:justify-center sm:bg-[#22201b]/90 sm:p-6"
+          className="fixed inset-0 z-[120] overflow-y-auto bg-[#f2ede1] print:hidden sm:flex sm:items-start sm:justify-center sm:bg-[#22201b]/90 sm:p-6"
           onClick={closeStrategyGame}
           role="dialog"
         >
           <div
-            className="riso-panel flex h-[100dvh] max-h-[100dvh] w-full flex-col sm:h-auto sm:max-h-full sm:max-w-3xl"
+            className="riso-panel flex h-[100dvh] max-h-[100dvh] min-h-0 w-full flex-col sm:my-auto sm:h-[calc(100dvh-3rem)] sm:max-h-[calc(100dvh-3rem)] sm:max-w-3xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b-2 border-[#22201b] bg-[#f8f4ea] p-4 sm:static sm:p-5">
