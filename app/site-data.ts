@@ -85,7 +85,7 @@ function normalizeSiteData(value: unknown): SiteData {
     title: readString(site.title, "title"),
     subtitle: readString(site.subtitle, "subtitle"),
     links: {
-      discord: readString(links.discord, "links.discord"),
+      newsletter: readString(links.newsletter, "links.newsletter"),
       slides: readString(links.slides, "links.slides"),
       github: readString(links.github, "links.github"),
       schedule: readString(links.schedule, "links.schedule"),

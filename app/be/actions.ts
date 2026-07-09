@@ -128,7 +128,7 @@ function formDataToSiteData(formData: FormData): SiteData {
     title: textValue(formData, "title"),
     subtitle: blockValue(formData, "subtitle"),
     links: {
-      discord: textValue(formData, "link_discord"),
+      newsletter: textValue(formData, "link_newsletter"),
       slides: textValue(formData, "link_slides"),
       github: textValue(formData, "link_github"),
       schedule: textValue(formData, "link_schedule"),
@@ -148,13 +148,13 @@ function formDataToSiteData(formData: FormData): SiteData {
 
   assertRequired(site.title, "Page title");
   assertRequired(site.subtitle, "Page subtitle");
-  assertRequired(site.links.discord, "Discord link");
+  assertRequired(site.links.newsletter, "Newsletter link");
   assertRequired(site.links.slides, "Slides link");
   assertRequired(site.links.github, "GitHub link");
   assertRequired(site.links.schedule, "Schedule link");
   assertRequired(site.links.bookClub, "Book club link");
   assertRequired(site.links.kofi, "Ko-fi link");
-  assertUrl(site.links.discord, "Discord link");
+  assertUrl(site.links.newsletter, "Newsletter link");
   assertUrl(site.links.slides, "Slides link");
   assertUrl(site.links.github, "GitHub link");
   assertUrl(site.links.schedule, "Schedule link");

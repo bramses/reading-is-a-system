@@ -20,7 +20,7 @@ export type SiteData = {
   title: string;
   subtitle: string;
   links: {
-    discord: string;
+    newsletter: string;
     slides: string;
     github: string;
     schedule: string;

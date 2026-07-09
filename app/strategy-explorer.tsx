@@ -731,15 +731,20 @@ function strategyLinkGroups(strategy: Strategy) {
   ].filter((group) => group.links.length > 0);
 }
 
-function DiscordIcon() {
+function EmailIcon() {
   return (
     <svg
       aria-hidden="true"
       className="size-4 shrink-0"
-      fill="currentColor"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
       viewBox="0 0 24 24"
     >
-      <path d="M20.3 4.4A16.9 16.9 0 0 0 16.1 3l-.2.3c-.2.4-.4.8-.5 1.2a15.8 15.8 0 0 0-6.8 0c-.1-.4-.3-.8-.6-1.2L7.9 3a17 17 0 0 0-4.2 1.4A17.7 17.7 0 0 0 1.5 18a17.1 17.1 0 0 0 5.2 2.6l.4-.5.8-1.4a10.7 10.7 0 0 1-1.3-.6l.3-.2a12.2 12.2 0 0 0 10.2 0l.3.2c-.4.2-.9.5-1.3.6.2.5.5 1 .8 1.4l.4.5a17 17 0 0 0 5.2-2.6 17.8 17.8 0 0 0-2.2-13.6ZM8.3 15.3c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm7.4 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z" />
+      <path d="m22 7-8.7 5.5a2.4 2.4 0 0 1-2.6 0L2 7" />
+      <rect width="20" height="16" x="2" y="4" rx="2" />
     </svg>
   );
 }
@@ -2088,12 +2093,12 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
           <nav className="riso-topscroll mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto px-4 py-3 sm:px-8 lg:px-10">
             <a
               className="riso-nav-link"
-              href={site.links.discord}
+              href={site.links.newsletter}
               target="_blank"
               rel="noreferrer"
             >
-              <DiscordIcon />
-              Community
+              <EmailIcon />
+              Newsletter
             </a>
             <Link
               className="riso-nav-link"

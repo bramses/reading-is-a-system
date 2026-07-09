@@ -121,9 +121,9 @@ function PageLinksEditor({ site }: { site: SiteData }) {
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <TextField
-          defaultValue={site.links.discord}
-          label="Discord link"
-          name="link_discord"
+          defaultValue={site.links.newsletter}
+          label="Newsletter link"
+          name="link_newsletter"
           type="url"
         />
         <TextField
