@@ -74,7 +74,7 @@ const READING_TIMER_BLOCK_COUNT = 10;
 const READING_TIMER_BLOCK_MINUTES = 5;
 const READING_TIMER_BLOCK_MS = READING_TIMER_BLOCK_MINUTES * 60 * 1000;
 const STRATEGY_GAME_ROUND_COUNT = 3;
-const STRATEGY_GAME_CHARACTER_GOAL = 140;
+const STRATEGY_GAME_CHARACTER_LIMIT = 280;
 const STRATEGY_GAME_PROMPT_WORDS = [
   "curious",
   "absorbed",
@@ -208,6 +208,10 @@ function appendPromptWord(response: string, word: string) {
   }
 
   return `${trimmedResponse} ${word} `;
+}
+
+function limitStrategyGameResponse(value: string) {
+  return value.slice(0, STRATEGY_GAME_CHARACTER_LIMIT);
 }
 
 function focusTextareaAtEnd(
@@ -1193,12 +1197,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     currentStrategyGameEntry?.response ?? "",
   );
   const strategyGameCanAdvance =
-    currentStrategyGameCharacterCount >= STRATEGY_GAME_CHARACTER_GOAL;
+    currentStrategyGameCharacterCount <= STRATEGY_GAME_CHARACTER_LIMIT;
   const strategyGameCanDownload =
     strategyGameComplete &&
     strategyGameEntries.length > 0 &&
     strategyGameEntries.every(
-      (entry) => countCharacters(entry.response) >= STRATEGY_GAME_CHARACTER_GOAL,
+      (entry) =>
+        countCharacters(entry.response) <= STRATEGY_GAME_CHARACTER_LIMIT,
     );
   const strategyGameResponses = useMemo(
     () =>
@@ -1582,10 +1587,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   }
 
   function updateStrategyGameResponse(value: string) {
+    const limitedValue = limitStrategyGameResponse(value);
+
     writeStrategyGameState({
       ...strategyGameState,
       entries: strategyGameEntries.map((entry, index) =>
-        index === strategyGameIndex ? { ...entry, response: value } : entry,
+        index === strategyGameIndex
+          ? { ...entry, response: limitedValue }
+          : entry,
       ),
     });
   }
@@ -1596,6 +1605,14 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     }
 
     const nextResponse = appendPromptWord(currentStrategyGameEntry.response, word);
+
+    if (countCharacters(nextResponse) > STRATEGY_GAME_CHARACTER_LIMIT) {
+      focusTextareaAtEnd(
+        strategyGameTextareaRef.current,
+        currentStrategyGameEntry.response.length,
+      );
+      return;
+    }
 
     updateStrategyGameResponse(nextResponse);
     focusTextareaAtEnd(strategyGameTextareaRef.current, nextResponse.length);
@@ -1996,11 +2013,9 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b-2 border-[#22201b] bg-[#f8f4ea] p-4 sm:static sm:p-5">
               <div>
                 <p className="riso-mono text-sm font-semibold uppercase">
-                  Strategy Game
+                  Don&apos;t Overthink It! Strategy Game
                 </p>
                 <p className="mt-1 text-sm leading-6 text-[#4a463c]">
-                  Write 140 characters for each selected strategy. The game
-                  avoids strategies you&apos;ve already seen this session.
                 </p>
               </div>
               <button
@@ -2095,12 +2110,12 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     className={`text-sm font-semibold ${
                       strategyGameCanAdvance
                         ? "text-[#315d4c]"
-                        : "text-[#4a463c]"
+                        : "text-[#b64f3a]"
                     }`}
                     id="strategy-game-character-count"
                   >
                     {currentStrategyGameCharacterCount} /{" "}
-                    {STRATEGY_GAME_CHARACTER_GOAL} characters
+                    {STRATEGY_GAME_CHARACTER_LIMIT} characters
                   </p>
                 </div>
 
@@ -2143,6 +2158,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     onChange={(event) =>
                       updateStrategyGameResponse(event.target.value)
                     }
+                    maxLength={STRATEGY_GAME_CHARACTER_LIMIT}
                     placeholder="Write how you will implement this strategy, or what you think about it."
                     ref={strategyGameTextareaRef}
                     value={currentStrategyGameEntry.response}
@@ -2152,7 +2168,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
 
                 <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4 sm:static sm:mx-0 sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:p-0">
                   <p className="text-sm leading-6 text-[#4a463c]">
-                    The next prompt unlocks at 140 characters.
+                    Keep each response at 280 characters or fewer.
                   </p>
                   <button
                     className="riso-button"
@@ -2211,8 +2227,8 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
           <div className="print-strategy-game">
             <h1>Strategy Game</h1>
             <p>
-              Three 140-character responses about randomly selected reading
-              strategies.
+              Three responses of up to 280 characters about randomly selected
+              reading strategies.
             </p>
 
             {strategyGameResponses.map(({ entry, strategy }, index) => (
@@ -3091,12 +3107,13 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
     currentStrategyGameEntry?.response ?? "",
   );
   const strategyGameCanAdvance =
-    currentStrategyGameCharacterCount >= STRATEGY_GAME_CHARACTER_GOAL;
+    currentStrategyGameCharacterCount <= STRATEGY_GAME_CHARACTER_LIMIT;
   const strategyGameCanCopy =
     strategyGameComplete &&
     strategyGameEntries.length > 0 &&
     strategyGameEntries.every(
-      (entry) => countCharacters(entry.response) >= STRATEGY_GAME_CHARACTER_GOAL,
+      (entry) =>
+        countCharacters(entry.response) <= STRATEGY_GAME_CHARACTER_LIMIT,
     );
   const strategyGameResponses = useMemo(
     () =>
@@ -3228,10 +3245,14 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
   }
 
   function updateStrategyGameResponse(value: string) {
+    const limitedValue = limitStrategyGameResponse(value);
+
     writeStrategyGameState({
       ...strategyGameState,
       entries: strategyGameEntries.map((entry, index) =>
-        index === strategyGameIndex ? { ...entry, response: value } : entry,
+        index === strategyGameIndex
+          ? { ...entry, response: limitedValue }
+          : entry,
       ),
     });
   }
@@ -3242,6 +3263,14 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
     }
 
     const nextResponse = appendPromptWord(currentStrategyGameEntry.response, word);
+
+    if (countCharacters(nextResponse) > STRATEGY_GAME_CHARACTER_LIMIT) {
+      focusTextareaAtEnd(
+        strategyGameTextareaRef.current,
+        currentStrategyGameEntry.response.length,
+      );
+      return;
+    }
 
     updateStrategyGameResponse(nextResponse);
     focusTextareaAtEnd(strategyGameTextareaRef.current, nextResponse.length);
@@ -3382,12 +3411,12 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
               <p
                 aria-live="polite"
                 className={`text-sm font-semibold ${
-                  strategyGameCanAdvance ? "text-[#315d4c]" : "text-[#4a463c]"
+                  strategyGameCanAdvance ? "text-[#315d4c]" : "text-[#b64f3a]"
                 }`}
                 id="strategy-game-page-character-count"
               >
                 {currentStrategyGameCharacterCount} /{" "}
-                {STRATEGY_GAME_CHARACTER_GOAL} characters
+                {STRATEGY_GAME_CHARACTER_LIMIT} characters
               </p>
             </div>
 
@@ -3430,6 +3459,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
                 onChange={(event) =>
                   updateStrategyGameResponse(event.target.value)
                 }
+                maxLength={STRATEGY_GAME_CHARACTER_LIMIT}
                 placeholder="Write how you will implement this strategy, or what you think about it."
                 ref={strategyGameTextareaRef}
                 value={currentStrategyGameEntry.response}
@@ -3439,7 +3469,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
 
             <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4">
               <p className="text-sm leading-6 text-[#4a463c]">
-                The next prompt unlocks at 140 characters.
+                Keep each response at 280 characters or fewer.
               </p>
               <button
                 className="riso-button"
@@ -3460,7 +3490,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
             </h2>
             <p className="mt-2 text-sm leading-6 text-[#4a463c]">
               Get up to three random strategies you haven&apos;t seen this
-              session and write 140 characters about each one.
+              session and write up to 280 characters about each one.
             </p>
             <button
               className="riso-button mt-5 w-full"
