@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Image URLs come from JSON and should not require Next config updates per host. */
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -66,6 +67,7 @@ const READING_TIMER_STORAGE_KEY = "reading-is-a-system-reading-timer";
 const STRATEGY_GAME_STORAGE_KEY = "reading-is-a-system-strategy-game";
 const STRATEGY_GAME_SEEN_STORAGE_KEY =
   "reading-is-a-system-strategy-game-seen";
+const STRATEGY_HASH_PREFIX = "strategy-";
 const KINDLE_APP_DEEP_LINK = "kindle://";
 const AUDIBLE_APP_DEEP_LINK = "audible://";
 const KINDLE_WEB_READER_URL = "https://read.amazon.com/kindle-library";
@@ -198,6 +200,31 @@ function createBlankStrategyGameState(): StrategyGameState {
 
 function countCharacters(value: string) {
   return value.trim().length;
+}
+
+function strategyElementId(strategyId: string) {
+  return `${STRATEGY_HASH_PREFIX}${strategyId}`;
+}
+
+function strategyIdFromHash(
+  hash: string,
+  strategyById: Map<string, Strategy>,
+) {
+  let targetId = "";
+
+  try {
+    targetId = decodeURIComponent(hash.replace(/^#/, ""));
+  } catch {
+    return null;
+  }
+
+  if (!targetId.startsWith(STRATEGY_HASH_PREFIX)) {
+    return null;
+  }
+
+  const strategyId = targetId.slice(STRATEGY_HASH_PREFIX.length);
+
+  return strategyById.has(strategyId) ? strategyId : null;
 }
 
 function appendPromptWord(response: string, word: string) {
@@ -911,6 +938,27 @@ function GitHubIcon() {
   );
 }
 
+function ShareIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="m8.6 10.5 6.8-4" />
+      <path d="m8.6 13.5 6.8 4" />
+    </svg>
+  );
+}
+
 function VideoIcon() {
   return (
     <svg
@@ -1359,6 +1407,36 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
     [filteredStrategies],
   );
 
+  const moveToStrategy = useCallback((strategyId: string) => {
+    setActiveTags([]);
+    setExpandedId(strategyId);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById(strategyElementId(strategyId))
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    function moveToHashedStrategy() {
+      const strategyId = strategyIdFromHash(window.location.hash, strategyById);
+
+      if (strategyId) {
+        moveToStrategy(strategyId);
+      }
+    }
+
+    moveToHashedStrategy();
+    window.addEventListener("hashchange", moveToHashedStrategy);
+
+    return () => {
+      window.removeEventListener("hashchange", moveToHashedStrategy);
+    };
+  }, [moveToStrategy, strategyById]);
+
   function toggleTag(tag: string) {
     setActiveTags((currentTags) =>
       currentTags.includes(tag)
@@ -1377,19 +1455,6 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   function shuffleVisibleStrategies() {
     reshuffleStrategies(site.strategies);
     forceStrategyShuffleRender((version) => version + 1);
-  }
-
-  function moveToStrategy(strategyId: string) {
-    setActiveTags([]);
-    setExpandedId(strategyId);
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        document
-          .getElementById(`strategy-${strategyId}`)
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
   }
 
   function openStarterPack() {
@@ -1735,6 +1800,21 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
       showClipboardStatus("Cart copied as Markdown.");
     } catch {
       showClipboardStatus("Could not copy cart.");
+    }
+  }
+
+  async function copyStrategyShareLink(strategy: Strategy) {
+    const shareUrl = new URL(window.location.href);
+
+    shareUrl.pathname = "/";
+    shareUrl.search = "";
+    shareUrl.hash = strategyElementId(strategy.id);
+
+    try {
+      await writeTextToClipboard(shareUrl.toString());
+      showClipboardStatus(`${strategy.title} link copied.`);
+    } catch {
+      showClipboardStatus("Could not copy strategy link.");
     }
   }
 
@@ -2844,7 +2924,7 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                 return (
                   <article
                     className="riso-card scroll-mt-24 overflow-hidden"
-                    id={`strategy-${strategy.id}`}
+                    id={strategyElementId(strategy.id)}
                     key={strategy.id}
                     style={strategyAccentStyle(strategy)}
                   >
@@ -2935,6 +3015,16 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                           type="button"
                         >
                           <CartIcon selected={inCart} />
+                        </button>
+                        <button
+                          aria-label={`Copy share link for ${strategy.title}`}
+                          className="riso-button gap-2"
+                          onClick={() => void copyStrategyShareLink(strategy)}
+                          title="Copy share link"
+                          type="button"
+                        >
+                          <ShareIcon />
+                          Share
                         </button>
                       </div>
                     </div>
