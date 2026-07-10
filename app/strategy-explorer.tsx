@@ -1078,14 +1078,18 @@ function CartIcon({ selected = false }: { selected?: boolean }) {
 }
 
 function StrategyGamePromptPills({
+  hiddenOnMobile = false,
   onSelect,
 }: {
+  hiddenOnMobile?: boolean;
   onSelect: (word: string) => void;
 }) {
   return (
     <div
       aria-label="Writing starter words"
-      className="riso-writing-pills mt-3"
+      className={`riso-writing-pills mt-3 ${
+        hiddenOnMobile ? "riso-writing-pills-keyboard-hidden" : ""
+      }`}
       role="group"
     >
       {STRATEGY_GAME_PROMPT_WORDS.map((word) => (
@@ -1127,6 +1131,8 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
   const [currentTimeMs, setCurrentTimeMs] = useState(() => Date.now());
   const [kindleMenuOpen, setKindleMenuOpen] = useState(false);
   const [strategyGameOpen, setStrategyGameOpen] = useState(false);
+  const [strategyGameInputFocused, setStrategyGameInputFocused] =
+    useState(false);
   const [showStrategyGameCelebration, setShowStrategyGameCelebration] =
     useState(false);
   const [printMode, setPrintMode] = useState<PrintMode | null>(null);
@@ -1643,11 +1649,13 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
       entries: nextEntries,
       index: 0,
     });
+    setStrategyGameInputFocused(false);
     setStrategyGameOpen(openInModal);
     setShowStrategyGameCelebration(false);
   }
 
   function closeStrategyGame() {
+    setStrategyGameInputFocused(false);
     setStrategyGameOpen(false);
   }
 
@@ -2238,13 +2246,18 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                     onChange={(event) =>
                       updateStrategyGameResponse(event.target.value)
                     }
+                    onBlur={() => setStrategyGameInputFocused(false)}
+                    onFocus={() => setStrategyGameInputFocused(true)}
                     maxLength={STRATEGY_GAME_CHARACTER_LIMIT}
                     placeholder="Write how you will implement this strategy, or what you think about it."
                     ref={strategyGameTextareaRef}
                     value={currentStrategyGameEntry.response}
                   />
                 </label>
-                <StrategyGamePromptPills onSelect={addStrategyGamePromptWord} />
+                <StrategyGamePromptPills
+                  hiddenOnMobile={strategyGameInputFocused}
+                  onSelect={addStrategyGamePromptWord}
+                />
 
                 <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4 sm:static sm:mx-0 sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:p-0">
                   <p className="text-sm leading-6 text-[#4a463c]">
@@ -3173,6 +3186,8 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
   );
   const [showCelebration, setShowCelebration] = useState(false);
   const [clipboardMessage, setClipboardMessage] = useState<string | null>(null);
+  const [strategyGameInputFocused, setStrategyGameInputFocused] =
+    useState(false);
   const clipboardMessageTimeoutRef = useRef<number | null>(null);
   const strategyGameTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const strategyGameEntries = strategyGameState.entries;
@@ -3330,6 +3345,7 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
       entries: nextEntries,
       index: 0,
     });
+    setStrategyGameInputFocused(false);
     setShowCelebration(false);
   }
 
@@ -3548,13 +3564,18 @@ export function StrategyGamePage({ site }: StrategyExplorerProps) {
                 onChange={(event) =>
                   updateStrategyGameResponse(event.target.value)
                 }
+                onBlur={() => setStrategyGameInputFocused(false)}
+                onFocus={() => setStrategyGameInputFocused(true)}
                 maxLength={STRATEGY_GAME_CHARACTER_LIMIT}
                 placeholder="Write how you will implement this strategy, or what you think about it."
                 ref={strategyGameTextareaRef}
                 value={currentStrategyGameEntry.response}
               />
             </label>
-            <StrategyGamePromptPills onSelect={addStrategyGamePromptWord} />
+            <StrategyGamePromptPills
+              hiddenOnMobile={strategyGameInputFocused}
+              onSelect={addStrategyGamePromptWord}
+            />
 
             <div className="sticky bottom-0 -mx-4 mt-4 flex flex-col gap-3 border-t-2 border-[#22201b] bg-[#f8f4ea] p-4">
               <p className="text-sm leading-6 text-[#4a463c]">

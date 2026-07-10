@@ -440,8 +440,19 @@ a {
 
 .riso-writing-pills {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 0 1rem 0.25rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.riso-writing-pills::-webkit-scrollbar {
+  display: none;
 }
 
 .riso-writing-pill {
@@ -473,6 +484,22 @@ a {
   box-shadow: 4px 4px 0 rgba(34, 32, 27, 0.24);
   color: var(--paper);
   transform: translate(-1px, -1px);
+}
+
+@media (max-width: 767px) {
+  .riso-writing-pills-keyboard-hidden {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .riso-writing-pills {
+    flex-wrap: wrap;
+    margin-left: 0;
+    margin-right: 0;
+    overflow-x: visible;
+    padding: 0;
+  }
 }
 
 .riso-input {
