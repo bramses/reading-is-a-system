@@ -3024,7 +3024,6 @@ export default function StrategyExplorer({ site }: StrategyExplorerProps) {
                           type="button"
                         >
                           <ShareIcon />
-                          Share
                         </button>
                       </div>
                     </div>
