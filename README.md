@@ -4,7 +4,9 @@ Read more widely, deeply, and effectively by treating reading as a system. A sma
 
 **Live site:** https://reading-is-a-system.vercel.app
 
-<!-- TODO: add a screenshot of the strategy explorer here before publishing -->
+<img width="3802" height="2148" alt="Screenshot 2026-07-14 23-54-38" src="https://github.com/user-attachments/assets/99d37bd3-878e-43c0-a9d3-b03f2e50b926" />
+
+
 
 ## What's here
 
@@ -58,4 +60,4 @@ Deploy the repository to Vercel — it will run the build script and serve the N
 
 ## Support
 
-If this is useful to you, consider [buying me a coffee on Ko-fi](https://ko-fi.com/bramses), or check out the [newsletter](https://buttondown.com/bramses) and [book club](https://calendar.app.google/kXBcqxRAY7znvfgJA).
+If this is useful to you, consider [buying me a coffee on Ko-fi](https://ko-fi.com/bramses), or check out the [newsletter](https://buttondown.com/bramses).
