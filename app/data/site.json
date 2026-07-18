@@ -171,6 +171,10 @@
       "pairedWithIds": ["you-won-t-remember-everything-you-read", "commonplace-book"],
       "body": "",
       "assets": [
+        {
+          "label": "Entity Shorthand Blog Post",
+          "url": "https://www.bramadams.dev/the-how-and-why-of-entity-shorthand/"
+        }
       ],
       "youtubeLinks": [],
       "imageUrls": [],
