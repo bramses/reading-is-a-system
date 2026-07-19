@@ -453,6 +453,18 @@
       "pairedWithIds": [],
       "body": "",
       "assets": [
+        {
+          "label": "Example 1",
+          "url": "https://www.bramadams.dev/the-cannons-of-high-culture/"
+        },
+        {
+          "label": "Example 2",
+          "url": "https://www.bramadams.dev/i-dont-like-books-with-molly-in-them/"
+        },
+        {
+          "label": "Example 3",
+          "url": "https://www.bramadams.dev/the-miyuki-dori/"
+        }
       ],
       "youtubeLinks": [],
       "imageUrls": [],
