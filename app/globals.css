@@ -430,14 +430,6 @@ a {
   height: 8px;
 }
 
-.riso-card-number {
-  color: #c3bba7;
-  font-family: "Instrument Serif", Georgia, serif;
-  font-size: 34px;
-  font-style: italic;
-  line-height: 0.8;
-}
-
 .riso-writing-pills {
   display: flex;
   flex-wrap: nowrap;
